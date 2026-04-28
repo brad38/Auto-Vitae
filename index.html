@@ -86,32 +86,31 @@
 
         <div class="flex-1 p-6 space-y-10 scroll-smooth md:overflow-y-auto pb-12 md:pb-6" id="editor-forms">
 
+            <!-- PREENCHIMENTO AUTOMÁTICO (ALGORITMO) -->
             <section class="space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Preenchimento com IA
+                        <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Preenchimento Automático
                     </h2>
-                    <label class="relative inline-flex items-center cursor-pointer" title="Ativar/Desativar IA">
-                      <input type="checkbox" id="ai-enable-toggle" class="sr-only peer" checked onchange="toggleAI()">
+                    <!-- Toggle Checkbox (Interruptor) -->
+                    <label class="relative inline-flex items-center cursor-pointer" title="Ativar/Desativar Algoritmo">
+                      <input type="checkbox" id="ai-enable-toggle" class="sr-only peer" checked onchange="toggleAlgoritmo()">
                       <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>
 
                 <div id="ai-container" class="bg-blue-50 p-4 rounded-2xl border border-blue-200 space-y-3 transition-all duration-300">
-                    <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-blue-100 shadow-sm">
-                        <i data-lucide="key" class="text-blue-400 w-4 h-4 shrink-0"></i>
-                        <input type="password" id="api-key-input" placeholder="Cole a sua API Key do Google Gemini..." class="flex-1 text-[10px] font-mono outline-none bg-transparent" onchange="saveApiKey()">
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-500 hover:text-blue-700 shrink-0" title="Como obter uma API Key Gratuita?"><i data-lucide="help-circle" class="w-4 h-4"></i></a>
-                    </div>
+                    <p class="text-[10px] text-blue-800 font-medium leading-relaxed">Cole suas informações abaixo. O algoritmo vai detetar padrões (emails, links, ferramentas, idiomas) e preencher os campos possíveis automaticamente.</p>
                     
-                    <textarea id="ai-input-text" class="w-full h-24 border border-blue-300 rounded-xl p-3 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none shadow-inner bg-white" placeholder="Cole o seu perfil do LinkedIn, resumo ou textos soltos aqui..."></textarea>
+                    <textarea id="ai-input-text" class="w-full h-24 border border-blue-300 rounded-xl p-3 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none shadow-inner bg-white" placeholder="Cole as suas informações brutas aqui..."></textarea>
                     
-                    <button id="ai-submit-btn" onclick="processAIFill()" class="w-full bg-blue-600 text-white font-bold text-[11px] py-2.5 rounded-xl hover:bg-blue-700 flex justify-center items-center gap-2 shadow-sm transition-all uppercase tracking-wide">
-                        <i data-lucide="wand-2" class="w-3.5 h-3.5" id="ai-btn-icon"></i> <span id="ai-btn-text">Extrair e Preencher</span>
+                    <button id="ai-submit-btn" onclick="processAutoFill()" class="w-full bg-blue-600 text-white font-bold text-[11px] py-2.5 rounded-xl hover:bg-blue-700 flex justify-center items-center gap-2 shadow-sm transition-all uppercase tracking-wide">
+                        <i data-lucide="file-search" class="w-3.5 h-3.5" id="ai-btn-icon"></i> <span id="ai-btn-text">Extrair e Preencher</span>
                     </button>
                 </div>
             </section>
             
+            <!-- TEMAS E ESCALA -->
             <section class="space-y-4">
                 <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="layout" class="w-3.5 h-3.5"></i> Temas, Cores e Escala</h2>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -287,14 +286,14 @@
 
         <div id="cv-scale-wrapper" class="origin-top flex justify-center transition-all duration-300" style="width: 210mm;">
             <div id="cv-render" class="bg-white shadow-2xl flex flex-col transition-all duration-300 print:shadow-none print:m-0 relative box-border shrink-0 overflow-hidden w-full" style="height: 297mm; max-height: 297mm;">
-                </div>
+                <!-- O Layout será injetado aqui -->
+            </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT DO SISTEMA -->
     <script>
-        // --- 1. CHAVE E ESTADO GLOBAL ---
-        const apiKey = ""; // A chave da API Gemini é fornecida pelo utilizador no ecrã
-        
+        // --- 1. ESTADO GLOBAL ---
         // Base comum para não repetir propriedades visuais nos perfis
         const layoutBase = {
             sidebarWidth: 30, themeColor: 'blue', layoutMode: 'standard', scaleTarget: 'main', mainScale: 100, sidebarScale: 100,
@@ -413,8 +412,8 @@
         window.addEventListener('resize', adjustMobileScale);
 
 
-        // --- GESTÃO DA IA E API KEY ---
-        function toggleAI() {
+        // --- GESTÃO DO ALGORITMO DE EXTRAÇÃO ---
+        function toggleAlgoritmo() {
             const isEnabled = document.getElementById('ai-enable-toggle').checked;
             const container = document.getElementById('ai-container');
             if (isEnabled) {
@@ -422,10 +421,6 @@
             } else {
                 container.classList.add('opacity-50', 'grayscale', 'pointer-events-none');
             }
-        }
-
-        function saveApiKey() {
-            localStorage.setItem('geminiApiKey', document.getElementById('api-key-input').value.trim());
         }
 
         // --- 2. UTILITÁRIOS ---
@@ -1248,89 +1243,171 @@
             }, 150);
         }
 
-        // --- SISTEMA MÁGICO DE PREENCHIMENTO VIA IA ---
-        async function processAIFill() {
+        // --- SISTEMA DE PREENCHIMENTO ALGORÍTMICO ---
+        function processAutoFill() {
             const inputEl = document.getElementById('ai-input-text');
             const rawText = inputEl.value;
-            const userApiKey = document.getElementById('api-key-input').value.trim();
             
-            if(!userApiKey) {
-                alert("Por favor, cole a sua API Key do Google Gemini primeiro.");
-                document.getElementById('api-key-input').focus();
-                return;
-            }
-            if(!rawText.trim()) return;
+            if (!rawText.trim()) return;
 
-            const btnText = document.getElementById('ai-btn-text');
-            const btnIcon = document.getElementById('ai-btn-icon');
             const btn = document.getElementById('ai-submit-btn');
 
             btn.classList.add('opacity-70', 'cursor-not-allowed');
-            btnIcon.setAttribute('data-lucide', 'loader-2');
-            btnIcon.classList.add('animate-spin');
-            btnText.innerText = 'Processando com IA...';
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin" id="ai-btn-icon"></i> <span id="ai-btn-text">A procurar padrões...</span>`;
             lucide.createIcons();
 
-            const prompt = `Extraia as informações do texto abaixo e retorne APENAS um objeto JSON estrito seguindo esta estrutura exata (preencha o máximo possível, use arrays vazios ou strings vazias se não encontrar algo aplicável). A formatação deve ser HTML válido para descrições.
-            {
-                "personal": { "name": "Nome", "title": "Cargo/Título", "age": "Idade", "status": "Estado Civil", "email": "Email", "phone": "Telefone", "location": "Localização" },
-                "about": "Resumo profissional em HTML (use <br/> para quebras se necessário)",
-                "objective": "Objetivo profissional em HTML",
-                "socials": [ { "platform": "Nome da Rede", "value": "link", "icon": "linkedin, github, twitter, globe ou link" } ],
-                "education": [ { "institution": "Nome Instituição", "degree": "Curso", "period": "Periodo" } ],
-                "practicalTraining": [ { "title": "Cargo/Projeto", "tech": "Ferramentas", "description": "Descrição das atividades em HTML (pode usar <ul><li>)" } ],
-                "languages": [ { "name": "Idioma", "conversacao": 100, "leitura": 100 } ],
-                "skills": [ "skill1", "skill2" ]
-            }
-            
-            Texto bruto do utilizador:
-            ${rawText}`;
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userApiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-
-                const result = await response.json();
-                
-                if(result.error) {
-                    alert("Erro da API: " + result.error.message);
-                    throw new Error(result.error.message);
-                }
-
-                const textResult = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (textResult) {
-                    const parsed = JSON.parse(textResult);
+            // Usamos um pequeno timeout para a UI conseguir atualizar o estado de loading antes do processamento
+            setTimeout(() => {
+                try {
+                    // Limpar prefixos indesejados (ex: rótulos de WhatsApp "[01:20, 26/04/2026] Nome: ")
+                    let cleanedText = rawText.replace(/\[\d{2}:\d{2}(:\d{2})?(, \d{2}\/\d{2}(\/\d{2,4})?)?\] [^:]+: /gi, '\n');
                     
-                    if(parsed.personal) state.personal = { ...state.personal, ...parsed.personal };
-                    if(parsed.about) state.about = parsed.about;
-                    if(parsed.objective) state.objective = parsed.objective;
-                    if(parsed.education && parsed.education.length > 0) state.education = parsed.education;
-                    if(parsed.practicalTraining && parsed.practicalTraining.length > 0) state.practicalTraining = parsed.practicalTraining;
-                    if(parsed.languages && parsed.languages.length > 0) state.languages = parsed.languages;
-                    if(parsed.skills && parsed.skills.length > 0) state.skills = parsed.skills;
-                    if(parsed.socials && parsed.socials.length > 0) state.socials = parsed.socials.map((s,i) => ({...s, id: Date.now()+i, icon: s.icon.toLowerCase()}));
+                    // Extrair linhas limpas
+                    let lines = cleanedText.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 0);
+
+                    const toTitleCase = (str) => str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+                    // 1. Extração de Email
+                    const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                    if (emailMatch) state.personal.email = emailMatch[0];
+
+                    // 2. Extração de Estado Civil
+                    const statusMatch = cleanedText.match(/\b(solteiro|casado|divorciado|viúvo|separado)(a)?\b/i);
+                    if (statusMatch) {
+                        state.personal.status = statusMatch[0].charAt(0).toUpperCase() + statusMatch[0].slice(1).toLowerCase();
+                    }
+
+                    // 3. Extração de Idade / Data de Nascimento
+                    const ageMatch = cleanedText.match(/\b(\d{2})\s*(anos|years)\b/i);
+                    const birthMatch = cleanedText.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
                     
-                    inputEl.value = ''; 
-                    renderEditor(); 
+                    if (ageMatch) {
+                        state.personal.age = ageMatch[0];
+                    } else if (birthMatch) {
+                        const birthYear = parseInt(birthMatch[3]);
+                        const currentYear = new Date().getFullYear();
+                        let age = currentYear - birthYear;
+                        // Previne confundir datas de emissão de documentos (ex: 2019) com data de nascimento
+                        if (age >= 14 && age <= 100) {
+                            state.personal.age = age + " anos";
+                        }
+                    }
+
+                    // 4. Extração de Telefone (Aprimorado para não pegar CPF)
+                    const phoneMatches = cleanedText.match(/(?:\+?\d{1,3}[- .\s]?)?\(?\d{2,3}\)?[- .\s]?\d{4,5}[- .\s]?\d{4}\b/g);
+                    if (phoneMatches) {
+                        for (let p of phoneMatches) {
+                            const justDigits = p.replace(/\D/g, '');
+                            // Ignora se for 11 dígitos juntos parecendo CPF
+                            if (justDigits.length === 11 && !/[-+()\s]/.test(p)) {
+                                if (justDigits[0] === '0' || justDigits[2] !== '9') continue;
+                            }
+                            if (justDigits.length < 8 || justDigits.length > 15) continue;
+                            state.personal.phone = p.trim();
+                            break;
+                        }
+                    }
+
+                    // 5. Nome, Localização e Informações de Linha
+                    let nameFound = false;
+                    for (let line of lines) {
+                        const lowerLine = line.toLowerCase();
+                        
+                        // Localização (Rua, Av, /Estado, - Estado, Belém, etc.)
+                        if (/(rua|avenida|av\.|travessa|bairro|cep|\/ ?[a-z]{2}\b|- ?[a-z]{2}\b)/i.test(line) && !/@/.test(line)) {
+                            state.personal.location = toTitleCase(line);
+                            continue;
+                        }
+
+                        // Ignorar linhas apenas numéricas, CPFs, RGs ou Órgãos
+                        if (/^\d+$/.test(line.replace(/[-.]/g, ''))) continue;
+                        if (lowerLine.includes("órgão") || lowerLine.includes("espedidor") || lowerLine.includes("expedidor") || lowerLine.includes("ssp") || lowerLine.includes("cpf") || lowerLine.includes("rg")) continue;
+
+                        // Nome (Geralmente 2 a 6 palavras sem números ou símbolos estranhos, na primeira linha válida)
+                        if (!nameFound && line.split(' ').length >= 2 && line.split(' ').length <= 6 && !/\d/.test(line) && !/@/.test(line) && !/solteiro|casado|divorciado|viúvo/i.test(line)) {
+                            state.personal.name = toTitleCase(line);
+                            nameFound = true;
+                            continue;
+                        }
+                    }
+
+                    // 6. Extração de LinkedIn
+                    const linkedinMatch = cleanedText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
+                    if (linkedinMatch && !state.socials.some(s => s.value.includes(linkedinMatch[0]))) {
+                        state.socials.push({ id: Date.now(), platform: 'LinkedIn', value: linkedinMatch[0], icon: 'linkedin' });
+                    }
+
+                    // 7. Extração de GitHub
+                    const githubMatch = cleanedText.match(/github\.com\/[a-zA-Z0-9_-]+/i);
+                    if (githubMatch && !state.socials.some(s => s.value.includes(githubMatch[0]))) {
+                        state.socials.push({ id: Date.now() + 1, platform: 'GitHub', value: githubMatch[0], icon: 'github' });
+                    }
+
+                    // 8. Extração de Skills (Dicionário predefinido)
+                    const knownSkills = ["JavaScript", "Python", "Java", "C\\+\\+", "C#", "Ruby", "PHP", "Swift", "Go", "Rust", "TypeScript", "React", "Angular", "Vue", "Node\\.js", "Express", "Django", "Flask", "Spring", "SQL", "MySQL", "PostgreSQL", "MongoDB", "NoSQL", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "Git", "GitHub", "Figma", "Photoshop", "Illustrator", "Excel", "Word", "Scrum", "Agile", "Marketing", "Vendas"];
+                    const foundSkills = [];
+                    knownSkills.forEach(skillRegex => {
+                        const regex = new RegExp("\\b" + skillRegex + "\\b", "i");
+                        if (regex.test(cleanedText)) {
+                            const cleanSkill = skillRegex.replace(/\\/g, ''); 
+                            foundSkills.push(cleanSkill);
+                        }
+                    });
+                    
+                    if (foundSkills.length > 0) {
+                        const currentSkillsLower = state.skills.map(s => s.toLowerCase());
+                        foundSkills.forEach(newSkill => {
+                            if (!currentSkillsLower.includes(newSkill.toLowerCase())) {
+                                state.skills.push(newSkill);
+                            }
+                        });
+                    }
+
+                    // 9. Extração de Idiomas
+                    const knownLangs = ["Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Mandarim", "Japonês", "Russo"];
+                    knownLangs.forEach(lang => {
+                        const regex = new RegExp("\\b" + lang + "\\b", "i");
+                        if (regex.test(cleanedText)) {
+                            if (!state.languages.some(l => l.name.toLowerCase() === lang.toLowerCase())) {
+                                state.languages.push({ name: lang, conversacao: 50, leitura: 50 });
+                            }
+                        }
+                    });
+
+                    // 10. Inferência de Formação ou Experiência (Leitura por linhas)
+                    lines.forEach(line => {
+                        const lowerLine = line.toLowerCase();
+                        if (lowerLine.length < 5) return;
+                        
+                        if (lowerLine.includes('universidade') || lowerLine.includes('faculdade') || lowerLine.includes('instituto') || lowerLine.includes('licenciatura') || lowerLine.includes('mestrado') || lowerLine.includes('doutorado') || lowerLine.includes('curso de')) {
+                            if (!state.education.some(e => e.institution === line.substring(0, 50))) {
+                                state.education.push({ institution: line.substring(0, 50), degree: "Curso (a preencher)", period: "Período (a preencher)" });
+                            }
+                        }
+                        else if (lowerLine.includes('desenvolvedor') || lowerLine.includes('engenheiro') || lowerLine.includes('analista') || lowerLine.includes('gerente') || lowerLine.includes('coordenador') || lowerLine.includes('técnico') || lowerLine.includes('assistente')) {
+                            if (!lowerLine.includes('objetivo') && !lowerLine.includes('resumo') && !lowerLine.includes('sobre')) {
+                                if (!state.practicalTraining.some(p => p.title === line.substring(0, 50))) {
+                                    state.practicalTraining.push({ title: line.substring(0, 50), tech: "Ferramentas...", description: "<ul><li>Descreva as suas atividades...</li></ul>" });
+                                }
+                            }
+                        }
+                    });
+
+                    inputEl.value = '';
+                    renderEditor();
                     renderPreviewHTML();
+                    
+                    alert("Algoritmo executado! Encontrámos padrões e preenchemos os campos correspondentes. Verifique os dados.");
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Ocorreu um erro ao tentar extrair a informação.");
+                } finally {
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    btn.innerHTML = `<i data-lucide="file-search" class="w-3.5 h-3.5" id="ai-btn-icon"></i> <span id="ai-btn-text">Extrair e Preencher</span>`;
+                    lucide.createIcons();
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Ocorreu um erro ao processar o texto. Verifique a sua API Key e tente novamente.");
-            } finally {
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                btnIcon.setAttribute('data-lucide', 'wand-2');
-                btnIcon.classList.remove('animate-spin');
-                btnText.innerText = 'Extrair e Preencher';
-                lucide.createIcons();
-            }
+            }, 800); // Simulamos um pequeno carregamento para perceção do utilizador
         }
 
         // PDF & JSON
@@ -1365,14 +1442,17 @@
         function downloadPDF() {
             if(!window.html2pdf) { window.print(); return; }
             const btn = document.getElementById('btn-pdf');
-            const icon = document.getElementById('icon-pdf');
-            const text = document.getElementById('text-pdf');
             
             btn.classList.add('opacity-70', 'cursor-not-allowed');
-            icon.setAttribute('data-lucide', 'loader-2');
-            icon.classList.add('animate-spin');
-            text.innerText = 'GERANDO...';
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin" id="icon-pdf"></i> <span id="text-pdf">GERANDO...</span>`;
             lucide.createIcons();
+
+            // Desativar a escala temporariamente para gerar o PDF A4 nativo em alta qualidade
+            const wrapper = document.getElementById('cv-scale-wrapper');
+            const oldTransform = wrapper.style.transform;
+            const oldHeight = wrapper.style.height;
+            wrapper.style.transform = 'none';
+            wrapper.style.height = 'auto';
 
             const opt = {
                 margin: 0, filename: `Curriculo_${state.personal.name.replace(/\s+/g,'_')}.pdf`,
@@ -1381,23 +1461,26 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            window.html2pdf().set(opt).from(document.getElementById('cv-render')).toPdf().get('pdf').then(pdf => {
-                const totalPages = pdf.internal.getNumberOfPages();
-                for (let i = totalPages; i > 1; i--) pdf.deletePage(i);
-            }).save().then(() => {
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                icon.setAttribute('data-lucide', 'download');
-                icon.classList.remove('animate-spin');
-                text.innerText = 'PDF';
-                lucide.createIcons();
-            }).catch(() => {
-                window.print();
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                icon.setAttribute('data-lucide', 'download');
-                icon.classList.remove('animate-spin');
-                text.innerText = 'PDF';
-                lucide.createIcons();
-            });
+            setTimeout(() => {
+                window.html2pdf().set(opt).from(document.getElementById('cv-render')).toPdf().get('pdf').then(pdf => {
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = totalPages; i > 1; i--) pdf.deletePage(i);
+                }).save().then(() => {
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    btn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5" id="icon-pdf"></i> <span id="text-pdf">PDF</span>`;
+                    lucide.createIcons();
+                    // Restaurar a escala
+                    wrapper.style.transform = oldTransform;
+                    wrapper.style.height = oldHeight;
+                }).catch(() => {
+                    window.print();
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    btn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5" id="icon-pdf"></i> <span id="text-pdf">PDF</span>`;
+                    lucide.createIcons();
+                    wrapper.style.transform = oldTransform;
+                    wrapper.style.height = oldHeight;
+                });
+            }, 50); // Aguardar o DOM ajustar sem escala antes de tirar print
         }
 
         // --- BINDING INICIAL ---
@@ -1428,10 +1511,7 @@
 
         // INIT
         window.onload = () => {
-            const savedKey = localStorage.getItem('geminiApiKey');
-            if(savedKey) document.getElementById('api-key-input').value = savedKey;
-            toggleAI();
-            
+            toggleAlgoritmo();
             renderEditor();
             renderPreviewHTML();
             lucide.createIcons();
