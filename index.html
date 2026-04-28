@@ -118,9 +118,9 @@
                     
                     <div class="flex items-center justify-between border-t border-slate-200 pt-4 mt-4 mb-4">
                         <div id="color-buttons" class="flex gap-1.5"></div>
-                        <div class="w-24 flex flex-col items-center">
+                        <div class="w-24 flex flex-col items-center" id="sidebar-width-container">
                             <span class="text-[9px] font-black text-slate-500 uppercase mb-1" id="lbl-sidebarWidth">Aba Lateral: 30%</span>
-                            <input type="range" min="20" max="45" data-bind="layout.sidebarWidth" class="w-full h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                            <input type="range" min="15" max="45" data-bind="layout.sidebarWidth" class="w-full h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                         </div>
                     </div>
 
@@ -299,7 +299,7 @@
             sidebarWidth: 30, themeColor: 'blue', layoutMode: 'standard', scaleTarget: 'main', mainScale: 100, sidebarScale: 100,
             iconVisibility: { profile: true, contactInfo: true, connect: true, languages: true, skills: true, about: true, objective: true, education: true, practical: true }
         };
-        const titlesBase = { about: "Sobre Mim", objective: "Objetivo Profissional", connect: "Conecte-se", languages: "Idiomas", skills: "Habilidades Técnicas", education: "Formação Acadêmica", practical: "Experiência / Projetos" };
+        const titlesBase = { about: "Sobre Mim", objective: "Objetivo Profissional", connect: "Conecte-se", languages: "Idiomas", skills: "Habilidades Técnicas", education: "Formação Acadêmica", practical: "Experiência / Projetos", portfolio: "PORTFÓLIO" };
 
         // PERFIL GENÉRICO COMO PADRÃO
         const defaultProfile = {
@@ -385,24 +385,19 @@
             setTimeout(adjustMobileScale, 50); // Recalcula a escala A4 com o novo tamanho da tela
         }
 
-        // Função responsável por calcular o tamanho da tela e fazer o A4 caber direitinho sem cortar!
         function adjustMobileScale() {
             const wrapper = document.getElementById('cv-scale-wrapper');
             const render = document.getElementById('cv-render');
             if (!wrapper || !render) return;
 
-            // Se for menor que 850px (mobile / tablet em pé)
             if (window.innerWidth < 850) {
-                const availableWidth = document.getElementById('preview-container').clientWidth - 32; // 16px padding de cada lado
-                const originalWidth = 794; // approx 210mm em pixels
+                const availableWidth = document.getElementById('preview-container').clientWidth - 32; 
+                const originalWidth = 794; 
                 let scale = availableWidth / originalWidth;
-                if (scale > 1) scale = 1; // Não queremos que faça upscale gigante, apenas shrink
+                if (scale > 1) scale = 1; 
                 
                 wrapper.style.transform = `scale(${scale})`;
                 wrapper.style.transformOrigin = 'top center';
-                
-                // Reduzir a altura física do wrapper para corresponder ao visual encolhido 
-                // e não deixar um scroll em branco infinito em baixo do currículo!
                 wrapper.style.height = `${render.offsetHeight * scale}px`;
             } else {
                 wrapper.style.transform = 'none';
@@ -410,7 +405,6 @@
             }
         }
         window.addEventListener('resize', adjustMobileScale);
-
 
         // --- GESTÃO DO ALGORITMO DE EXTRAÇÃO ---
         function toggleAlgoritmo() {
@@ -451,70 +445,76 @@
             return `<i data-lucide="${name}" class="w-3 h-3 ${extraClass}"></i>`;
         };
 
-        // --- 3. GERAÇÃO DE LAYOUTS HTML ---
+        // --- 3. GERAÇÃO DE LAYOUTS HTML COM DUPLO WRAPPER (CORREÇÃO ANTI-CROP) ---
         function getStandardLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex h-full w-full">
-                    <div id="sidebar-content-inner" class="${t.sidebar} text-white shrink-0 transition-all duration-300 relative origin-top-left" style="width: ${state.layout.sidebarWidth}%; transform: scale(${state.layout.sidebarScale/100}); height: ${100/(state.layout.sidebarScale/100)}%;">
-                        <div class="p-10 flex flex-col h-full w-full">
-                            <div class="mb-10 text-center flex flex-col items-center">
-                                ${renderPhotoHtml("w-32 h-32 mb-6 border-4 border-white/10 shadow-2xl")}
-                                <h2 class="text-xl font-black uppercase tracking-tight leading-none mb-2">${state.personal.name}</h2>
-                                <p class="${t.bar} text-slate-900 px-2 py-0.5 inline-block rounded text-[9px] font-black uppercase tracking-widest">${state.personal.title}</p>
+                    <div class="${t.sidebar} shrink-0 relative overflow-hidden min-w-0" style="width: ${state.layout.sidebarWidth}%;">
+                        <div id="sidebar-content-inner" class="absolute inset-0 origin-top-left text-white" style="transform: scale(${sF}); width: ${100/sF}%; height: ${100/sF}%;">
+                            <div class="p-10 flex flex-col h-full w-full">
+                                <div class="mb-10 text-center flex flex-col items-center">
+                                    ${renderPhotoHtml("w-32 h-32 mb-6 border-4 border-white/10 shadow-2xl")}
+                                    <h2 class="text-xl font-black uppercase tracking-tight leading-none mb-2">${state.personal.name}</h2>
+                                    <p class="${t.bar} text-slate-900 px-2 py-0.5 inline-block rounded text-[9px] font-black uppercase tracking-widest">${state.personal.title}</p>
+                                </div>
+                                <div class="space-y-10">
+                                    <section>
+                                        <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('profile','user')} ${state.titles.profile || 'Perfil'}</h3>
+                                        <div class="text-[11px] space-y-2 opacity-90">
+                                            ${state.personal.age ? `<p>${state.personal.age} • ${state.personal.status}</p>` : ''}
+                                            ${state.personal.location ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','map-pin','text-blue-400')} ${state.personal.location}</div>` : ''}
+                                            ${state.personal.phone ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','phone','text-blue-400')} ${state.personal.phone}</div>` : ''}
+                                            ${state.personal.email ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','mail','text-blue-400')} <span class="break-all">${state.personal.email}</span></div>` : ''}
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('connect','link')} ${state.titles.connect}</h3>
+                                        <div class="space-y-3">
+                                            ${state.socials.map(s => `<div class="flex items-center gap-3 text-[11px] font-medium opacity-90">${getIconHtml('connect', s.icon, 'text-blue-400')}<span class="truncate">${s.value}</span></div>`).join('')}
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
+                                        <div class="space-y-4">
+                                            ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 opacity-90"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] uppercase opacity-70">Conversação</span>${renderLangBarHtml(l.conversacao, true)}</div><div><span class="text-[7px] uppercase opacity-70">Leitura</span>${renderLangBarHtml(l.leitura, true)}</div></div></div>`).join('')}
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
+                                        <div class="flex flex-wrap gap-1.5">${state.skills.map(s => `<span class="text-[9px] bg-white/10 px-2 py-1 rounded text-white font-bold">${s}</span>`).join('')}</div>
+                                    </section>
+                                </div>
+                                <div class="mt-auto pt-10 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 pb-8">${state.footer.left}</div>
                             </div>
-                            <div class="space-y-10">
-                                <section>
-                                    <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('profile','user')} ${state.titles.profile || 'Perfil'}</h3>
-                                    <div class="text-[11px] space-y-2 opacity-90">
-                                        ${state.personal.age ? `<p>${state.personal.age} • ${state.personal.status}</p>` : ''}
-                                        ${state.personal.location ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','map-pin','text-blue-400')} ${state.personal.location}</div>` : ''}
-                                        ${state.personal.phone ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','phone','text-blue-400')} ${state.personal.phone}</div>` : ''}
-                                        ${state.personal.email ? `<div class="flex items-center gap-2">${getIconHtml('contactInfo','mail','text-blue-400')} <span class="break-all">${state.personal.email}</span></div>` : ''}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('connect','link')} ${state.titles.connect}</h3>
-                                    <div class="space-y-3">
-                                        ${state.socials.map(s => `<div class="flex items-center gap-3 text-[11px] font-medium opacity-90">${getIconHtml('connect', s.icon, 'text-blue-400')}<span class="truncate">${s.value}</span></div>`).join('')}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
-                                    <div class="space-y-4">
-                                        ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 opacity-90"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] uppercase opacity-70">Conversação</span>${renderLangBarHtml(l.conversacao, true)}</div><div><span class="text-[7px] uppercase opacity-70">Leitura</span>${renderLangBarHtml(l.leitura, true)}</div></div></div>`).join('')}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h3 class="text-[10px] font-black uppercase text-white/30 border-b border-white/10 pb-1 mb-4 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
-                                    <div class="flex flex-wrap gap-1.5">${state.skills.map(s => `<span class="text-[9px] bg-white/10 px-2 py-1 rounded text-white font-bold">${s}</span>`).join('')}</div>
-                                </section>
-                            </div>
-                            <div class="mt-auto pt-10 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 pb-8">${state.footer.left}</div>
                         </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 bg-white origin-top-left flex flex-col h-full" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="p-12 flex flex-col w-full flex-1">
-                            <section class="mb-8">
-                                <div class="flex items-center gap-3 mb-4 font-black uppercase tracking-widest text-slate-800 border-b border-slate-100 pb-1">${getIconHtml('about', 'user', t.text)} ${state.titles.about}</div>
-                                <div class="text-[13px] text-slate-600 leading-relaxed italic rich-text ${state.layout.iconVisibility.about ? `pl-10 border-l-4 ${t.border}` : ''}">${state.about}</div>
-                            </section>
-                            <section class="mb-8">
-                                <div class="flex items-center gap-3 mb-4 font-black uppercase tracking-widest text-slate-800 border-b border-slate-100 pb-1">${getIconHtml('objective', 'target', t.text)} ${state.titles.objective}</div>
-                                <div class="text-[13px] text-slate-600 leading-relaxed font-medium rich-text ${state.layout.iconVisibility.objective ? `pl-10 border-l-4 ${t.border}` : ''}">${state.objective}</div>
-                            </section>
-                            <section class="mb-10">
-                                <div class="flex items-center gap-3 mb-8 font-black uppercase tracking-widest text-slate-800">${getIconHtml('education', 'graduation-cap', t.text)} ${state.titles.education}</div>
-                                <div class="space-y-6 relative ${state.layout.iconVisibility.education ? 'ml-4 border-l-2 border-slate-100 pl-8 pb-1' : ''}">
-                                    ${state.education.map(edu => `<div class="relative">${state.layout.iconVisibility.education ? `<div class="absolute -left-[37px] top-1.5 w-2.5 h-2.5 rounded-full ${t.primary}"></div>` : ''}<h4 class="text-[13px] font-black text-slate-800 leading-none">${edu.institution}</h4><p class="text-[11px] ${t.text} font-bold mt-1">${edu.degree}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-1">${edu.period}</p></div>`).join('')}
-                                </div>
-                            </section>
-                            <section class="mb-6">
-                                <div class="flex items-center gap-3 mb-8 font-black uppercase tracking-widest text-slate-800">${getIconHtml('practical', 'briefcase', t.text)} ${state.titles.practical}</div>
-                                <div class="space-y-8 ${state.layout.iconVisibility.practical ? 'pl-10' : ''}">
-                                    ${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-black text-slate-800 uppercase mb-1">${p.title}</h4><p class="text-[10px] font-black ${t.text} mb-3 uppercase tracking-widest border-b pb-1 border-slate-50">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}
-                                </div>
-                            </section>
-                            <div class="mt-auto pt-8 pb-8 border-t border-slate-50 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">${state.footer.right}</div>
+                    <div class="flex-1 relative overflow-hidden min-w-0 bg-white">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="p-12 flex flex-col w-full flex-1">
+                                <section class="mb-8">
+                                    <div class="flex items-center gap-3 mb-4 font-black uppercase tracking-widest text-slate-800 border-b border-slate-100 pb-1">${getIconHtml('about', 'user', t.text)} ${state.titles.about}</div>
+                                    <div class="text-[13px] text-slate-600 leading-relaxed italic rich-text ${state.layout.iconVisibility.about ? `pl-10 border-l-4 ${t.border}` : ''}">${state.about}</div>
+                                </section>
+                                <section class="mb-8">
+                                    <div class="flex items-center gap-3 mb-4 font-black uppercase tracking-widest text-slate-800 border-b border-slate-100 pb-1">${getIconHtml('objective', 'target', t.text)} ${state.titles.objective}</div>
+                                    <div class="text-[13px] text-slate-600 leading-relaxed font-medium rich-text ${state.layout.iconVisibility.objective ? `pl-10 border-l-4 ${t.border}` : ''}">${state.objective}</div>
+                                </section>
+                                <section class="mb-10">
+                                    <div class="flex items-center gap-3 mb-8 font-black uppercase tracking-widest text-slate-800">${getIconHtml('education', 'graduation-cap', t.text)} ${state.titles.education}</div>
+                                    <div class="space-y-6 relative ${state.layout.iconVisibility.education ? 'ml-4 border-l-2 border-slate-100 pl-8 pb-1' : ''}">
+                                        ${state.education.map(edu => `<div class="relative">${state.layout.iconVisibility.education ? `<div class="absolute -left-[37px] top-1.5 w-2.5 h-2.5 rounded-full ${t.primary}"></div>` : ''}<h4 class="text-[13px] font-black text-slate-800 leading-none">${edu.institution}</h4><p class="text-[11px] ${t.text} font-bold mt-1">${edu.degree}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-1">${edu.period}</p></div>`).join('')}
+                                    </div>
+                                </section>
+                                <section class="mb-6">
+                                    <div class="flex items-center gap-3 mb-8 font-black uppercase tracking-widest text-slate-800">${getIconHtml('practical', 'briefcase', t.text)} ${state.titles.practical}</div>
+                                    <div class="space-y-8 ${state.layout.iconVisibility.practical ? 'pl-10' : ''}">
+                                        ${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-black text-slate-800 uppercase mb-1">${p.title}</h4><p class="text-[10px] font-black ${t.text} mb-3 uppercase tracking-widest border-b pb-1 border-slate-50">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                    </div>
+                                </section>
+                                <div class="mt-auto pt-8 pb-8 border-t border-slate-50 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">${state.footer.right}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -522,150 +522,166 @@
         }
 
         function getModernLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full bg-slate-50/30 w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="p-12 flex justify-between items-center mb-6 border-b-2 border-slate-100 bg-white shadow-sm w-full">
-                            <div class="flex gap-6 items-center">
-                                ${renderPhotoHtml("w-24 h-24 shadow-md border-4 border-white")}
-                                <div><h1 class="text-4xl font-black text-slate-900 leading-none mb-1">${state.personal.name}</h1><p class="${t.text} font-black uppercase tracking-widest text-xs">${state.personal.title}</p></div>
-                            </div>
-                            <div class="text-right text-[10px] text-slate-400 uppercase font-black space-y-1">
-                                ${state.personal.phone ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','phone')} ${state.personal.phone}</p>` : ''}
-                                ${state.personal.email ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','mail')} ${state.personal.email}</p>` : ''}
-                                ${state.personal.location ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','map-pin')} ${state.personal.location}</p>` : ''}
-                                ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect', s.icon)} ${s.value}</p>`).join('')}
-                            </div>
-                        </header>
-                    </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="px-12 grid grid-cols-12 gap-10 flex-1 pt-4 pb-4 w-full h-full">
-                            <div class="col-span-8 space-y-10">
-                                <section class="grid grid-cols-2 gap-6">
-                                    <div><h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-sm italic text-slate-600 leading-relaxed rich-text">${state.about}</div></div>
-                                    <div><h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3><div class="text-sm text-slate-600 leading-relaxed rich-text">${state.objective}</div></div>
-                                </section>
-                                <section>
-                                    <h3 class="text-xs font-black uppercase mb-6 ${t.text} tracking-widest border-b pb-2 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                    <div class="space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-sm font-black text-slate-800">${p.title}</h4><span class="text-[10px] text-slate-400 font-black">${p.tech}</span><div class="text-[12px] text-slate-500 mt-2 rich-text">${p.description}</div></div>`).join('')}</div>
-                                </section>
-                            </div>
-                            <div class="col-span-4 space-y-10">
-                                <section>
-                                    <h3 class="text-xs font-black uppercase mb-6 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('education','graduation-cap')} ${state.titles.education}</h3>
-                                    <div class="space-y-6">${state.education.map(edu => `<div class="border-l-2 border-slate-200 pl-4"><h4 class="text-[12px] font-black text-slate-800 leading-tight mb-1">${edu.institution}</h4><p class="text-[11px] text-slate-500">${edu.degree}</p><p class="text-[9px] font-black ${t.text} uppercase mt-1 tracking-widest">${edu.period}</p></div>`).join('')}</div>
-                                </section>
-                                <section>
-                                    <h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
-                                    <div class="space-y-4">${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div>
-                                </section>
-                                <section>
-                                    <h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
-                                    <div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] font-black bg-white px-3 py-1.5 rounded-lg border border-slate-100 text-slate-600 shadow-sm">${s}</span>`).join('')}</div>
-                                </section>
-                            </div>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 bg-white border-b-2 border-slate-100 shadow-sm">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="p-12 flex justify-between items-center w-full">
+                                <div class="flex gap-6 items-center">
+                                    ${renderPhotoHtml("w-24 h-24 shadow-md border-4 border-white")}
+                                    <div><h1 class="text-4xl font-black text-slate-900 leading-none mb-1">${state.personal.name}</h1><p class="${t.text} font-black uppercase tracking-widest text-xs">${state.personal.title}</p></div>
+                                </div>
+                                <div class="text-right text-[10px] text-slate-400 uppercase font-black space-y-1">
+                                    ${state.personal.phone ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','phone')} ${state.personal.phone}</p>` : ''}
+                                    ${state.personal.email ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','mail')} ${state.personal.email}</p>` : ''}
+                                    ${state.personal.location ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','map-pin')} ${state.personal.location}</p>` : ''}
+                                    ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect', s.icon)} ${s.value}</p>`).join('')}
+                                </div>
+                            </header>
                         </div>
-                        <div class="mt-auto px-12 pb-8 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                    </div>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="px-12 grid grid-cols-12 gap-10 flex-1 pt-8 pb-4 w-full h-full">
+                                <div class="col-span-8 space-y-10">
+                                    <section class="grid grid-cols-2 gap-6">
+                                        <div><h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-sm italic text-slate-600 leading-relaxed rich-text">${state.about}</div></div>
+                                        <div><h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3><div class="text-sm text-slate-600 leading-relaxed rich-text">${state.objective}</div></div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase mb-6 ${t.text} tracking-widest border-b pb-2 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
+                                        <div class="space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-sm font-black text-slate-800">${p.title}</h4><span class="text-[10px] text-slate-400 font-black">${p.tech}</span><div class="text-[12px] text-slate-500 mt-2 rich-text">${p.description}</div></div>`).join('')}</div>
+                                    </section>
+                                </div>
+                                <div class="col-span-4 space-y-10">
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase mb-6 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('education','graduation-cap')} ${state.titles.education}</h3>
+                                        <div class="space-y-6">${state.education.map(edu => `<div class="border-l-2 border-slate-200 pl-4"><h4 class="text-[12px] font-black text-slate-800 leading-tight mb-1">${edu.institution}</h4><p class="text-[11px] text-slate-500">${edu.degree}</p><p class="text-[9px] font-black ${t.text} uppercase mt-1 tracking-widest">${edu.period}</p></div>`).join('')}</div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
+                                        <div class="space-y-4">${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase mb-4 ${t.text} tracking-widest flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
+                                        <div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] font-black bg-white px-3 py-1.5 rounded-lg border border-slate-100 text-slate-600 shadow-sm">${s}</span>`).join('')}</div>
+                                    </section>
+                                </div>
+                            </div>
+                            <div class="mt-auto px-12 pb-8 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
         function getTechLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full font-mono bg-[#0f172a] text-slate-400">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <div class="p-12 flex items-center gap-6 pb-6 border-b border-slate-800 w-full">
-                            ${renderPhotoHtml("w-20 h-20 border-2 border-emerald-500/30")}
-                            <div class="flex-1">
-                                <h1 class="text-4xl font-bold text-emerald-400 mb-1 tracking-tighter">&gt; ${state.personal.name.toUpperCase()}</h1>
-                                <p class="text-slate-500 text-sm">// ${state.personal.title}</p>
-                            </div>
-                            <div class="text-right text-[10px] text-emerald-500/70 space-y-1">
-                                ${state.personal.phone ? `<p>TEL: "${state.personal.phone}"</p>` : ''}
-                                ${state.personal.email ? `<p>MAIL: "${state.personal.email}"</p>` : ''}
-                                ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect', s.icon)} "${s.value}"</p>`).join('')}
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 border-b border-slate-800">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <div class="p-12 flex items-center gap-6 w-full">
+                                ${renderPhotoHtml("w-20 h-20 border-2 border-emerald-500/30")}
+                                <div class="flex-1">
+                                    <h1 class="text-4xl font-bold text-emerald-400 mb-1 tracking-tighter">&gt; ${state.personal.name.toUpperCase()}</h1>
+                                    <p class="text-slate-500 text-sm">// ${state.personal.title}</p>
+                                </div>
+                                <div class="text-right text-[10px] text-emerald-500/70 space-y-1">
+                                    ${state.personal.phone ? `<p>TEL: "${state.personal.phone}"</p>` : ''}
+                                    ${state.personal.email ? `<p>MAIL: "${state.personal.email}"</p>` : ''}
+                                    ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect', s.icon)} "${s.value}"</p>`).join('')}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="grid grid-cols-12 gap-10 flex-1 p-12 pt-6 w-full h-full">
-                            <div class="col-span-8 space-y-8">
-                                <section class="grid grid-cols-2 gap-6">
-                                    <div><h3 class="text-emerald-500 text-xs font-black mb-3 flex items-center gap-2">${getIconHtml('about','user')} # ${state.titles.about}</h3><div class="text-xs italic leading-relaxed rich-text">"${state.about}"</div></div>
-                                    <div><h3 class="text-emerald-500 text-xs font-black mb-3 flex items-center gap-2">${getIconHtml('objective','target')} # ${state.titles.objective}</h3><div class="text-xs leading-relaxed rich-text">${state.objective}</div></div>
-                                </section>
-                                <section>
-                                   <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('practical','code')} # ${state.titles.practical}</h3>
-                                   ${state.practicalTraining.map(p => `<div class="mb-6 bg-slate-900/50 p-4 border-l-2 border-emerald-500 page-break-inside-avoid"><h4 class="text-white text-sm font-bold uppercase">${p.title}</h4><p class="text-[10px] opacity-50 mb-2">stack: [${p.tech}]</p><div class="text-xs leading-relaxed rich-text">${p.description}</div></div>`).join('')}
-                                </section>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="grid grid-cols-12 gap-10 flex-1 p-12 pt-8 w-full h-full">
+                                <div class="col-span-8 space-y-8">
+                                    <section class="grid grid-cols-2 gap-6">
+                                        <div><h3 class="text-emerald-500 text-xs font-black mb-3 flex items-center gap-2">${getIconHtml('about','user')} # ${state.titles.about}</h3><div class="text-xs italic leading-relaxed rich-text">"${state.about}"</div></div>
+                                        <div><h3 class="text-emerald-500 text-xs font-black mb-3 flex items-center gap-2">${getIconHtml('objective','target')} # ${state.titles.objective}</h3><div class="text-xs leading-relaxed rich-text">${state.objective}</div></div>
+                                    </section>
+                                    <section>
+                                       <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('practical','code')} # ${state.titles.practical}</h3>
+                                       ${state.practicalTraining.map(p => `<div class="mb-6 bg-slate-900/50 p-4 border-l-2 border-emerald-500 page-break-inside-avoid"><h4 class="text-white text-sm font-bold uppercase">${p.title}</h4><p class="text-[10px] opacity-50 mb-2">stack: [${p.tech}]</p><div class="text-xs leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                    </section>
+                                </div>
+                                <div class="col-span-4 space-y-8">
+                                    <section>
+                                        <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('education','graduation-cap')} # ${state.titles.education}</h3>
+                                        ${state.education.map(edu => `<div class="mb-4"><h4 class="text-white text-[12px] font-bold">${edu.institution}</h4><p class="text-[11px]">${edu.degree}</p><p class="text-[10px] text-emerald-500/70">${edu.period}</p></div>`).join('')}
+                                    </section>
+                                     <section>
+                                        <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('languages','globe')} # ${state.titles.languages}</h3>
+                                        <div class="space-y-3">
+                                            ${state.languages.map(l => `<div><div class="text-[10px] font-bold mb-1 text-slate-300"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-3"><div><div class="text-[8px] text-emerald-500/70 mb-0.5">conv: ${l.conversacao}%</div><div class="h-1 w-full bg-slate-800 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width: ${l.conversacao}%;"></div></div></div><div><div class="text-[8px] text-emerald-500/70 mb-0.5">leit: ${l.leitura}%</div><div class="h-1 w-full bg-slate-800 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width: ${l.leitura}%;"></div></div></div></div></div>`).join('')}
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('skills','terminal')} # ${state.titles.skills}</h3>
+                                        <div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] bg-slate-800 border border-slate-700 px-2 py-1 rounded text-emerald-400">"${s}"</span>`).join('')}</div>
+                                    </section>
+                                </div>
                             </div>
-                            <div class="col-span-4 space-y-8">
-                                <section>
-                                    <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('education','graduation-cap')} # ${state.titles.education}</h3>
-                                    ${state.education.map(edu => `<div class="mb-4"><h4 class="text-white text-[12px] font-bold">${edu.institution}</h4><p class="text-[11px]">${edu.degree}</p><p class="text-[10px] text-emerald-500/70">${edu.period}</p></div>`).join('')}
-                                </section>
-                                 <section>
-                                    <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('languages','globe')} # ${state.titles.languages}</h3>
-                                    <div class="space-y-3">
-                                        ${state.languages.map(l => `<div><div class="text-[10px] font-bold mb-1 text-slate-300"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-3"><div><div class="text-[8px] text-emerald-500/70 mb-0.5">conv: ${l.conversacao}%</div><div class="h-1 w-full bg-slate-800 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width: ${l.conversacao}%;"></div></div></div><div><div class="text-[8px] text-emerald-500/70 mb-0.5">leit: ${l.leitura}%</div><div class="h-1 w-full bg-slate-800 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width: ${l.leitura}%;"></div></div></div></div></div>`).join('')}
-                                    </div>
-                                </section>
-                                <section>
-                                    <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('skills','terminal')} # ${state.titles.skills}</h3>
-                                    <div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] bg-slate-800 border border-slate-700 px-2 py-1 rounded text-emerald-400">"${s}"</span>`).join('')}</div>
-                                </section>
-                            </div>
+                            <div class="mt-auto border-t border-slate-800 mx-12 pt-6 pb-6 flex justify-between text-[10px] text-emerald-500/50 font-black uppercase tracking-[0.2em] w-[calc(100%-6rem)]"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                         </div>
-                        <div class="mt-auto border-t border-slate-800 mx-12 pt-6 pb-6 flex justify-between text-[10px] text-emerald-500/50 font-black uppercase tracking-[0.2em] w-[calc(100%-6rem)]"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                     </div>
                 </div>
             `;
         }
 
         function getCriativoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex h-full bg-slate-50 w-full">
-                    <div id="sidebar-content-inner" class="w-20 shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); height: ${100/(state.layout.sidebarScale/100)}%;">
-                        <aside class="${t.primary} flex flex-col items-center py-12 text-white h-full w-full gap-10">
-                            <div class="rotate-[-90deg] whitespace-nowrap text-2xl font-black opacity-10 tracking-[1em]">PORTFOLIO</div>
-                        </aside>
+                    <div class="shrink-0 relative overflow-hidden min-w-0 ${t.primary}" style="width: ${state.layout.sidebarWidth}%;">
+                        <div id="sidebar-content-inner" class="absolute inset-0 origin-top-left flex flex-col items-center justify-center py-12 text-white" style="transform: scale(${sF}); width: ${100/sF}%; height: ${100/sF}%;">
+                            <div class="text-4xl font-black opacity-15 tracking-[0.3em] uppercase text-center" style="writing-mode: vertical-rl; transform: rotate(180deg);">${state.titles.portfolio !== undefined ? state.titles.portfolio : 'PORTFÓLIO'}</div>
+                        </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="p-12 flex flex-col h-full w-full">
-                            <header class="mb-10 flex gap-8 items-center border-l-[10px] border-slate-900 pl-6">
-                                ${renderPhotoHtml("w-20 h-20")}
-                                <div>
-                                    <h1 class="text-5xl font-black text-slate-900 tracking-tighter leading-none mb-2 uppercase">${state.personal.name}</h1>
-                                    <p class="text-lg font-bold uppercase tracking-widest ${t.text}">${state.personal.title}</p>
-                                    <p class="text-xs text-slate-500 font-bold mt-2">
-                                        ${state.personal.phone ? `${state.personal.phone} • ` : ''} 
-                                        ${state.personal.email}
-                                        ${state.socials.length > 0 ? ' • ' + state.socials.map(s => s.value).join(' • ') : ''}
-                                    </p>
-                                </div>
-                            </header>
-                            <div class="grid grid-cols-2 gap-10 flex-1">
-                                <section class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
-                                    <h3 class="text-xs font-black uppercase text-slate-400 mb-2 flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3>
-                                    <div class="text-sm italic text-slate-600 rich-text">${state.about}</div>
-                                </section>
-                                <section class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
-                                    <h3 class="text-xs font-black uppercase text-slate-400 mb-2 flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3>
-                                    <div class="text-sm text-slate-600 rich-text">${state.objective}</div>
-                                </section>
-                                <section class="col-span-2 space-y-6">
-                                    <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('practical','briefcase')} / ${state.titles.practical}</h3>
-                                    ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><h4 class="font-black text-slate-800">${p.title}</h4><p class="text-[10px] font-black text-blue-500 mb-2">${p.tech}</p><div class="text-[12px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
-                                </section>
-                                <section class="space-y-6">
-                                    <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('languages','globe')} / ${state.titles.languages}</h3>
-                                    <div class="space-y-4">
-                                        ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}
+                    <div class="flex-1 relative overflow-hidden min-w-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="p-12 flex flex-col h-full w-full">
+                                <header class="mb-10 flex gap-8 items-center border-l-[10px] border-slate-900 pl-6">
+                                    ${renderPhotoHtml("w-20 h-20")}
+                                    <div>
+                                        <h1 class="text-5xl font-black text-slate-900 tracking-tighter leading-none mb-2 uppercase">${state.personal.name}</h1>
+                                        <p class="text-lg font-bold uppercase tracking-widest ${t.text}">${state.personal.title}</p>
+                                        <p class="text-xs text-slate-500 font-bold mt-2">
+                                            ${state.personal.phone ? `${state.personal.phone} • ` : ''} 
+                                            ${state.personal.email}
+                                            ${state.socials.length > 0 ? ' • ' + state.socials.map(s => s.value).join(' • ') : ''}
+                                        </p>
                                     </div>
-                                </section>
+                                </header>
+                                <div class="grid grid-cols-2 gap-10 flex-1">
+                                    <section class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
+                                        <h3 class="text-xs font-black uppercase text-slate-400 mb-2 flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3>
+                                        <div class="text-sm italic text-slate-600 rich-text">${state.about}</div>
+                                    </section>
+                                    <section class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-500">
+                                        <h3 class="text-xs font-black uppercase text-slate-400 mb-2 flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3>
+                                        <div class="text-sm text-slate-600 rich-text">${state.objective}</div>
+                                    </section>
+                                    <section class="col-span-2 space-y-6">
+                                        <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('practical','briefcase')} / ${state.titles.practical}</h3>
+                                        ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><h4 class="font-black text-slate-800">${p.title}</h4><p class="text-[10px] font-black text-blue-500 mb-2">${p.tech}</p><div class="text-[12px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
+                                    </section>
+                                    <section class="space-y-6">
+                                        <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('languages','globe')} / ${state.titles.languages}</h3>
+                                        <div class="space-y-4">
+                                            ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}
+                                        </div>
+                                    </section>
+                                </div>
+                                <div class="mt-auto pt-8 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </div>
-                            <div class="mt-auto pt-8 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                         </div>
                     </div>
                 </div>
@@ -673,51 +689,59 @@
         }
 
         function getHibridoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="bg-slate-900 text-white p-10 text-center relative overflow-hidden w-full">
-                            <div class="absolute left-0 top-0 bottom-0 w-2 ${t.primary}"></div>
-                            <h1 class="text-4xl font-black uppercase tracking-tighter mb-2">${state.personal.name}</h1>
-                            <div class="flex justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-                                ${state.personal.phone ? `<span class="flex items-center gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</span><span>•</span>` : ''}
-                                ${state.personal.email ? `<span class="flex items-center gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</span><span>•</span>` : ''}
-                                <span class="flex items-center gap-1">${getIconHtml('contactInfo','map-pin')}${state.personal.location}</span>
-                            </div>
-                            <div class="flex justify-center gap-6 text-[10px] font-bold text-white/50 mt-2">
-                                ${state.socials.map(s => `<span class="flex items-center gap-1">${getIconHtml('connect',s.icon)}${s.value}</span>`).join('<span>•</span>')}
-                            </div>
-                        </header>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 bg-slate-900">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="text-white p-10 text-center relative w-full">
+                                <div class="absolute left-0 top-0 bottom-0 w-2 ${t.primary}"></div>
+                                <h1 class="text-4xl font-black uppercase tracking-tighter mb-2">${state.personal.name}</h1>
+                                <div class="flex justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+                                    ${state.personal.phone ? `<span class="flex items-center gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</span><span>•</span>` : ''}
+                                    ${state.personal.email ? `<span class="flex items-center gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</span><span>•</span>` : ''}
+                                    <span class="flex items-center gap-1">${getIconHtml('contactInfo','map-pin')}${state.personal.location}</span>
+                                </div>
+                                <div class="flex justify-center gap-6 text-[10px] font-bold text-white/50 mt-2">
+                                    ${state.socials.map(s => `<span class="flex items-center gap-1">${getIconHtml('connect',s.icon)}${s.value}</span>`).join('<span>•</span>')}
+                                </div>
+                            </header>
+                        </div>
                     </div>
                     <div class="flex flex-1 w-full h-full">
-                        <div id="sidebar-content-inner" class="w-72 shrink-0 bg-slate-50 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); height: ${100/(state.layout.sidebarScale/100)}%;">
-                            <aside class="p-8 flex flex-col space-y-10 h-full w-full">
-                                <div class="flex justify-center">${renderPhotoHtml("w-24 h-24 border-4 border-white shadow-sm")}</div>
-                                <section>
-                                    <h3 class="text-xs font-black uppercase border-b-2 pb-1 mb-4 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
-                                    <div class="space-y-2">${state.skills.map(s => `<div class="text-[11px] font-bold text-slate-600 flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full ${t.primary}"></div>${s}</div>`).join('')}</div>
-                                </section>
-                                <section>
-                                    <h3 class="text-xs font-black uppercase border-b-2 pb-1 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
-                                    <div class="space-y-4">
-                                        ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}
-                                    </div>
-                                </section>
-                                <div class="mt-auto pt-8 pb-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">${state.footer.left}</div>
-                            </aside>
+                        <div class="shrink-0 bg-slate-50 relative overflow-hidden min-w-0 h-full" style="width: ${state.layout.sidebarWidth}%;">
+                            <div id="sidebar-left-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${sF}); width: ${100/sF}%; height: ${100/sF}%;">
+                                <aside class="p-8 flex flex-col space-y-10 h-full w-full">
+                                    <div class="flex justify-center">${renderPhotoHtml("w-24 h-24 border-4 border-white shadow-sm")}</div>
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase border-b-2 pb-1 mb-4 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3>
+                                        <div class="space-y-2">${state.skills.map(s => `<div class="text-[11px] font-bold text-slate-600 flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full ${t.primary}"></div>${s}</div>`).join('')}</div>
+                                    </section>
+                                    <section>
+                                        <h3 class="text-xs font-black uppercase border-b-2 pb-1 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3>
+                                        <div class="space-y-4">
+                                            ${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 text-slate-600"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}
+                                        </div>
+                                    </section>
+                                    <div class="mt-auto pt-8 pb-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">${state.footer.left}</div>
+                                </aside>
+                            </div>
                         </div>
-                        <div id="main-content-inner" class="flex-1 w-full origin-top-left flex flex-col" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                            <main class="p-10 flex flex-col space-y-8 h-full w-full flex-1">
-                                <div class="grid grid-cols-2 gap-8">
-                                    <section><h3 class="text-xs font-black uppercase tracking-widest mb-2 ${t.text} flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-[12px] text-slate-600 leading-relaxed italic rich-text">${state.about}</div></section>
-                                    <section><h3 class="text-xs font-black uppercase tracking-widest mb-2 ${t.text} flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${state.objective}</div></section>
-                                </div>
-                                <section>
-                                    <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 ${t.text} border-slate-100 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                    <div class="mt-6 space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase">${p.title}</h4><p class="text-[10px] font-black text-slate-400 mb-2">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div>
-                                </section>
-                                <div class="mt-auto border-t border-slate-100 pt-8 pb-4 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 w-full">${state.footer.right}</div>
-                            </main>
+                        <div class="flex-1 relative overflow-hidden min-w-0 bg-white">
+                            <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                                <main class="p-10 flex flex-col space-y-8 h-full w-full flex-1">
+                                    <div class="grid grid-cols-2 gap-8">
+                                        <section><h3 class="text-xs font-black uppercase tracking-widest mb-2 ${t.text} flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-[12px] text-slate-600 leading-relaxed italic rich-text">${state.about}</div></section>
+                                        <section><h3 class="text-xs font-black uppercase tracking-widest mb-2 ${t.text} flex items-center gap-2">${getIconHtml('objective','target')} ${state.titles.objective}</h3><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${state.objective}</div></section>
+                                    </div>
+                                    <section>
+                                        <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 ${t.text} border-slate-100 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
+                                        <div class="mt-6 space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase">${p.title}</h4><p class="text-[10px] font-black text-slate-400 mb-2">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div>
+                                    </section>
+                                    <div class="mt-auto border-t border-slate-100 pt-8 pb-4 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 w-full">${state.footer.right}</div>
+                                </main>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -725,29 +749,35 @@
         }
 
         function getClassicoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full font-serif leading-relaxed bg-white text-slate-900 w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="text-center mb-6 border-b-2 border-slate-900 pb-6 w-full p-16 pt-16 pb-0">
-                            <h1 class="text-4xl font-bold uppercase mb-2 tracking-widest">${state.personal.name}</h1>
-                            <p class="text-[12px] font-medium uppercase tracking-tight">
-                                ${state.personal.location} 
-                                ${state.personal.phone ? ` | ${state.personal.phone}` : ''} 
-                                ${state.personal.email ? ` | ${state.personal.email}` : ''} 
-                                ${state.socials.map(s => ` | ${s.value}`).join('')}
-                            </p>
-                        </header>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 border-b-2 border-slate-900">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="text-center pb-6 w-full p-16 pt-16">
+                                <h1 class="text-4xl font-bold uppercase mb-2 tracking-widest">${state.personal.name}</h1>
+                                <p class="text-[12px] font-medium uppercase tracking-tight">
+                                    ${state.personal.location} 
+                                    ${state.personal.phone ? ` | ${state.personal.phone}` : ''} 
+                                    ${state.personal.email ? ` | ${state.personal.email}` : ''} 
+                                    ${state.socials.map(s => ` | ${s.value}`).join('')}
+                                </p>
+                            </header>
+                        </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="space-y-8 flex-1 w-full h-full p-16 pt-6 pb-6 flex flex-col">
-                            <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about} & ${state.titles.objective}</h3><div class="text-[13px] text-justify rich-text">${state.about} <br/><br/> ${state.objective}</div></section>
-                            <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('education','graduation-cap')} ${state.titles.education}</h3>${state.education.map(edu => `<div class="mb-3 flex justify-between text-[13px]"><span class="font-bold">${edu.institution} - ${edu.degree}</span><span>${edu.period}</span></div>`).join('')}</section>
-                            <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="flex flex-col gap-2">${state.languages.map(l => `<div class="text-[13px] font-bold">${l.name}: <span class="font-normal italic">Conversação ${l.conversacao}% | Leitura ${l.leitura}%</span></div>`).join('')}</div></section>
-                            <section>
-                                <h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><div class="flex justify-between font-bold text-[13px] uppercase"><span>${p.title}</span></div><p class="text-[11px] font-bold text-slate-500 italic mb-2">${p.tech}</p><div class="text-[13px] text-justify leading-relaxed rich-text">${p.description}</div></div>`).join('')}
-                            </section>
-                            <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="space-y-8 flex-1 w-full h-full p-16 pt-8 pb-6 flex flex-col">
+                                <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('about','user')} ${state.titles.about} & ${state.titles.objective}</h3><div class="text-[13px] text-justify rich-text">${state.about} <br/><br/> ${state.objective}</div></section>
+                                <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('education','graduation-cap')} ${state.titles.education}</h3>${state.education.map(edu => `<div class="mb-3 flex justify-between text-[13px]"><span class="font-bold">${edu.institution} - ${edu.degree}</span><span>${edu.period}</span></div>`).join('')}</section>
+                                <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="flex flex-col gap-2">${state.languages.map(l => `<div class="text-[13px] font-bold">${l.name}: <span class="font-normal italic">Conversação ${l.conversacao}% | Leitura ${l.leitura}%</span></div>`).join('')}</div></section>
+                                <section>
+                                    <h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
+                                    ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><div class="flex justify-between font-bold text-[13px] uppercase"><span>${p.title}</span></div><p class="text-[11px] font-bold text-slate-500 italic mb-2">${p.tech}</p><div class="text-[13px] text-justify leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                </section>
+                                <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -755,41 +785,47 @@
         }
 
         function getInfoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full bg-slate-50 w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="flex items-center gap-8 mb-6 bg-white p-8 rounded-3xl shadow-sm mx-12 mt-12 w-[calc(100%-6rem)]">
-                            ${renderPhotoHtml(`w-32 h-32 border-4 ${t.border}`)}
-                            <div>
-                                <h1 class="text-4xl font-black uppercase tracking-tighter leading-none mb-2">${state.personal.name}</h1>
-                                <p class="text-slate-400 font-bold text-sm tracking-widest uppercase mb-2">${state.personal.title}</p>
-                                <div class="flex gap-3 text-[10px] font-bold text-slate-500 flex-wrap">
-                                    ${state.personal.phone ? `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</span>` : ''}
-                                    ${state.personal.email ? `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</span>` : ''}
-                                    ${state.socials.map(s => `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('connect',s.icon)}${s.value}</span>`).join('')}
-                                </div>
-                            </div>
-                        </header>
-                    </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="grid grid-cols-2 gap-10 flex-1 p-12 pt-4 w-full h-full">
-                            <section class="space-y-8">
+                    <div class="w-full shrink-0 overflow-hidden min-h-0">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="flex items-center gap-8 bg-white p-8 rounded-3xl shadow-sm mx-12 mt-12 w-[calc(100%-6rem)]">
+                                ${renderPhotoHtml(`w-32 h-32 border-4 ${t.border}`)}
                                 <div>
-                                    <div class="flex items-center gap-3 mb-4">${getIconHtml('about','info',t.text)}<h3 class="text-sm font-black uppercase tracking-tight">${state.titles.about} & ${state.titles.objective}</h3></div>
-                                    <div class="text-xs text-slate-600 bg-white p-4 rounded-xl shadow-sm rich-text">${state.about} <br/><br/> ${state.objective}</div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-3 mb-6">${getIconHtml('practical','briefcase',t.text)}<h3 class="text-lg font-black uppercase tracking-tight">${state.titles.practical}</h3></div>
-                                    <div class="space-y-8 relative ml-4 border-l-2 border-slate-200 pl-10">
-                                        ${state.practicalTraining.map((p, i) => `<div class="relative page-break-inside-avoid"><div class="absolute -left-[51px] top-0 w-8 h-8 rounded-full ${t.primary} flex items-center justify-center text-white border-4 border-white font-bold text-xs">${i+1}</div><h4 class="text-[14px] font-black text-slate-800 leading-none">${p.title}</h4><p class="text-[10px] font-bold text-blue-500 my-1 uppercase">${p.tech}</p><div class="text-[11px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
+                                    <h1 class="text-4xl font-black uppercase tracking-tighter leading-none mb-2">${state.personal.name}</h1>
+                                    <p class="text-slate-400 font-bold text-sm tracking-widest uppercase mb-2">${state.personal.title}</p>
+                                    <div class="flex gap-3 text-[10px] font-bold text-slate-500 flex-wrap">
+                                        ${state.personal.phone ? `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</span>` : ''}
+                                        ${state.personal.email ? `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</span>` : ''}
+                                        ${state.socials.map(s => `<span class="bg-slate-100 px-2 py-1 rounded flex items-center gap-1">${getIconHtml('connect',s.icon)}${s.value}</span>`).join('')}
                                     </div>
                                 </div>
-                            </section>
-                            <section class="space-y-8 flex flex-col h-full">
-                                <div class="bg-white p-8 rounded-3xl shadow-sm"><h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3><div class="space-y-4">${state.skills.slice(0,6).map((s, i) => `<div><div class="flex justify-between text-[10px] font-bold mb-1 uppercase"><span>${s}</span><span>${100-(i*10)}%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="${t.primary} h-full" style="width:${100-(i*10)}%"></div></div></div>`).join('')}</div></div>
-                                <div class="bg-white p-8 rounded-3xl shadow-sm"><h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="space-y-4">${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 uppercase"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div></div>
-                                <div class="mt-auto border-t border-slate-200 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
-                            </section>
+                            </header>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="grid grid-cols-2 gap-10 flex-1 p-12 pt-8 w-full h-full">
+                                <section class="space-y-8">
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-4">${getIconHtml('about','info',t.text)}<h3 class="text-sm font-black uppercase tracking-tight">${state.titles.about} & ${state.titles.objective}</h3></div>
+                                        <div class="text-xs text-slate-600 bg-white p-4 rounded-xl shadow-sm rich-text">${state.about} <br/><br/> ${state.objective}</div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-6">${getIconHtml('practical','briefcase',t.text)}<h3 class="text-lg font-black uppercase tracking-tight">${state.titles.practical}</h3></div>
+                                        <div class="space-y-8 relative ml-4 border-l-2 border-slate-200 pl-10">
+                                            ${state.practicalTraining.map((p, i) => `<div class="relative page-break-inside-avoid"><div class="absolute -left-[51px] top-0 w-8 h-8 rounded-full ${t.primary} flex items-center justify-center text-white border-4 border-white font-bold text-xs">${i+1}</div><h4 class="text-[14px] font-black text-slate-800 leading-none">${p.title}</h4><p class="text-[10px] font-bold text-blue-500 my-1 uppercase">${p.tech}</p><div class="text-[11px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="space-y-8 flex flex-col h-full">
+                                    <div class="bg-white p-8 rounded-3xl shadow-sm"><h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3><div class="space-y-4">${state.skills.slice(0,6).map((s, i) => `<div><div class="flex justify-between text-[10px] font-bold mb-1 uppercase"><span>${s}</span><span>${100-(i*10)}%</span></div><div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="${t.primary} h-full" style="width:${100-(i*10)}%"></div></div></div>`).join('')}</div></div>
+                                    <div class="bg-white p-8 rounded-3xl shadow-sm"><h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="space-y-4">${state.languages.map(l => `<div><div class="flex justify-between text-[10px] font-bold mb-1 uppercase"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-2"><div><span class="text-[7px] text-slate-400 uppercase">Conversação</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[7px] text-slate-400 uppercase">Leitura</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div></div>
+                                    <div class="mt-auto border-t border-slate-200 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                                </section>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -797,66 +833,87 @@
         }
 
         function getFuncionalLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full bg-white text-slate-800 w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="text-center mb-8 p-16 pt-16 pb-0 w-full">
-                            ${renderPhotoHtml("w-20 h-20 mx-auto mb-4")}
-                            <h1 class="text-4xl font-black uppercase mb-2 leading-none">${state.personal.name}</h1>
-                            <p class="text-slate-400 font-bold tracking-[0.4em] uppercase text-xs mb-2">${state.personal.title}</p>
-                            <p class="text-[10px] text-slate-500 font-bold flex flex-wrap gap-4 items-center justify-center">
-                                ${state.personal.phone ? `<span class="flex items-center justify-center gap-1">${getIconHtml('contactInfo','phone')} ${state.personal.phone}</span>` : ''}
-                                <span class="flex items-center justify-center gap-1">${getIconHtml('contactInfo','mail')} ${state.personal.email}</span>
-                                ${state.socials.map(s => `<span class="flex items-center gap-1">${getIconHtml('connect',s.icon)} ${s.value}</span>`).join('')}
-                            </p>
-                        </header>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 bg-white">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="text-center p-16 pt-16 pb-6 w-full">
+                                ${renderPhotoHtml("w-20 h-20 mx-auto mb-4")}
+                                <h1 class="text-4xl font-black uppercase mb-2 leading-none">${state.personal.name}</h1>
+                                <p class="text-slate-400 font-bold tracking-[0.4em] uppercase text-xs mb-2">${state.personal.title}</p>
+                                <p class="text-[10px] text-slate-500 font-bold flex flex-wrap gap-4 items-center justify-center">
+                                    ${state.personal.phone ? `<span class="flex items-center justify-center gap-1">${getIconHtml('contactInfo','phone')} ${state.personal.phone}</span>` : ''}
+                                    <span class="flex items-center justify-center gap-1">${getIconHtml('contactInfo','mail')} ${state.personal.email}</span>
+                                    ${state.socials.map(s => `<span class="flex items-center gap-1">${getIconHtml('connect',s.icon)} ${s.value}</span>`).join('')}
+                                </p>
+                            </header>
+                        </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <main class="space-y-10 flex-1 p-16 pt-4 w-full h-full flex flex-col">
-                            <section class="grid grid-cols-2 gap-10">
-                                <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1">${state.titles.about}</h2><div class="text-[12px] text-slate-600 rich-text">${state.about}</div></div>
-                                <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1">${state.titles.objective}</h2><div class="text-[12px] text-slate-600 rich-text">${state.objective}</div></div>
-                            </section>
-                            <section class="grid grid-cols-2 gap-10">
-                                <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h2><div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold">${s}</span>`).join('')}</div></div>
-                                <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h2><div class="space-y-3">${state.languages.map(l => `<div class="text-[11px] font-bold flex justify-between"><span>${l.name}</span><span class="${t.text}">C: ${l.conversacao}% | L: ${l.leitura}%</span></div>`).join('')}</div></div>
-                            </section>
-                            <section><h2 class="text-lg font-black uppercase border-b-4 border-slate-100 mb-6 pb-2 tracking-tight flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h2><div class="grid grid-cols-2 gap-x-12 gap-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[13px] font-bold uppercase mb-1">${p.title}</h4><div class="text-[11px] text-slate-500 font-medium leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div></section>
-                            <div class="mt-auto border-t border-slate-100 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
-                        </main>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <main class="space-y-10 flex-1 p-16 pt-0 w-full h-full flex flex-col">
+                                <section class="grid grid-cols-2 gap-10">
+                                    <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1">${state.titles.about}</h2><div class="text-[12px] text-slate-600 rich-text">${state.about}</div></div>
+                                    <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1">${state.titles.objective}</h2><div class="text-[12px] text-slate-600 rich-text">${state.objective}</div></div>
+                                </section>
+                                <section class="grid grid-cols-2 gap-10">
+                                    <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h2><div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold">${s}</span>`).join('')}</div></div>
+                                    <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h2><div class="space-y-3">${state.languages.map(l => `<div class="text-[11px] font-bold flex justify-between"><span>${l.name}</span><span class="${t.text}">C: ${l.conversacao}% | L: ${l.leitura}%</span></div>`).join('')}</div></div>
+                                </section>
+                                <section><h2 class="text-lg font-black uppercase border-b-4 border-slate-100 mb-6 pb-2 tracking-tight flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h2><div class="grid grid-cols-2 gap-x-12 gap-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[13px] font-bold uppercase mb-1">${p.title}</h4><div class="text-[11px] text-slate-500 font-medium leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                <div class="mt-auto border-t border-slate-100 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                            </main>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
         function getCronologicoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full bg-white w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="flex justify-between items-center mb-8 border-l-[10px] border-slate-800 pl-6 bg-slate-50 p-6 rounded-r-3xl mx-16 mt-16 w-[calc(100%-8rem)]">
-                            <div>
-                                <h1 class="text-4xl font-black text-slate-800 tracking-tighter leading-none mb-2 uppercase">${state.personal.name}</h1>
-                                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">${state.personal.title}</p>
-                                <p class="text-[10px] text-slate-500 font-bold flex items-center gap-3 flex-wrap">
-                                    ${state.personal.phone ? `<span>${getIconHtml('contactInfo','phone')}${state.personal.phone}</span>` : ''}
-                                    <span>${getIconHtml('contactInfo','mail')} ${state.personal.email}</span>
-                                </p>
-                            </div>
-                            ${renderPhotoHtml("w-16 h-16")}
-                        </header>
-                    </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="flex-1 space-y-8 p-16 pt-4 h-full w-full flex flex-col">
-                            <section class="text-[12px] text-slate-600 border-b border-slate-100 pb-8">
-                                <div class="grid grid-cols-2 gap-8">
-                                    <div><strong class="flex items-center gap-1">${getIconHtml('about','user')}${state.titles.about}:</strong><br/><div class="rich-text">${state.about}</div></div>
-                                    <div><strong class="flex items-center gap-1">${getIconHtml('objective','target')}${state.titles.objective}:</strong><br/><div class="rich-text">${state.objective}</div></div>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 bg-white">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="flex justify-between items-center bg-slate-50 p-6 rounded-r-3xl mx-16 mt-16 border-l-[10px] border-slate-800 pl-6 w-[calc(100%-8rem)]">
+                                <div>
+                                    <h1 class="text-4xl font-black text-slate-800 tracking-tighter leading-none mb-2 uppercase">${state.personal.name}</h1>
+                                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">${state.personal.title}</p>
+                                    <p class="text-[10px] text-slate-500 font-bold flex items-center gap-3 flex-wrap">
+                                        ${state.personal.phone ? `<span>${getIconHtml('contactInfo','phone')}${state.personal.phone}</span>` : ''}
+                                        <span>${getIconHtml('contactInfo','mail')} ${state.personal.email}</span>
+                                    </p>
                                 </div>
-                            </section>
-                            <div class="space-y-12 relative border-l-2 border-slate-200 ml-32 pl-12 mt-8">
-                                ${state.practicalTraining.map((p, i) => `<div class="relative mb-12 page-break-inside-avoid"><div class="absolute -left-[81px] top-1 w-20 text-right text-[10px] font-black ${t.text} uppercase">PROJETO ${i+1}</div><div class="absolute -left-[53px] top-1 w-2 h-2 rounded-full ${t.primary} ring-4 ring-white"></div><h4 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">${p.title}</h4><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">${p.tech}</p><div class="text-[13px] text-slate-600 leading-loose text-justify rich-text">${p.description}</div></div>`).join('')}
+                                ${renderPhotoHtml("w-16 h-16")}
+                            </header>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="flex-1 p-16 pt-8 h-full w-full flex flex-col">
+                                <section class="text-[12px] text-slate-600 border-b border-slate-100 pb-8">
+                                    <div class="grid grid-cols-2 gap-8">
+                                        <div><strong class="flex items-center gap-1">${getIconHtml('about','user')}${state.titles.about}:</strong><div class="rich-text mt-2">${state.about}</div></div>
+                                        <div><strong class="flex items-center gap-1">${getIconHtml('objective','target')}${state.titles.objective}:</strong><div class="rich-text mt-2">${state.objective}</div></div>
+                                    </div>
+                                </section>
+                                
+                                <div class="mt-12 ml-28 border-l-2 border-slate-200 pl-8 space-y-12">
+                                    ${state.practicalTraining.map((p, i) => `
+                                    <div class="relative page-break-inside-avoid">
+                                        <div class="absolute top-1 -left-[37px] w-3 h-3 rounded-full ${t.primary} ring-4 ring-white"></div>
+                                        <div class="absolute top-0.5 -left-[120px] w-20 text-right text-[10px] font-black ${t.text} uppercase tracking-widest">PROJETO ${i+1}</div>
+                                        <h4 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">${p.title}</h4>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">${p.tech}</p>
+                                        <div class="text-[13px] text-slate-600 leading-loose text-justify rich-text">${p.description}</div>
+                                    </div>`).join('')}
+                                </div>
+
+                                <div class="mt-auto border-t border-slate-100 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </div>
-                            <div class="mt-auto border-t border-slate-100 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                         </div>
                     </div>
                 </div>
@@ -864,24 +921,30 @@
         }
 
         function getAcademicoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full font-serif text-slate-900 bg-white leading-loose w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="text-center mb-8 border-b-2 border-slate-900 pb-8 p-20 pt-20 pb-0 w-full">
-                            <h1 class="text-3xl font-bold uppercase mb-4 tracking-[0.2em]">${state.personal.name}</h1>
-                            <div class="text-[12px] space-y-1 font-medium italic">
-                                <p>${state.personal.location} ${state.personal.phone ? `| ${state.personal.phone}` : ''} ${state.personal.email ? `| ${state.personal.email}` : ''}</p>
-                                <p>${state.footer.left}</p>
-                            </div>
-                        </header>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 border-b-2 border-slate-900">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="text-center pb-8 p-20 pt-20 w-full">
+                                <h1 class="text-3xl font-bold uppercase mb-4 tracking-[0.2em]">${state.personal.name}</h1>
+                                <div class="text-[12px] space-y-1 font-medium italic">
+                                    <p>${state.personal.location} ${state.personal.phone ? `| ${state.personal.phone}` : ''} ${state.personal.email ? `| ${state.personal.email}` : ''}</p>
+                                    <p>${state.footer.left}</p>
+                                </div>
+                            </header>
+                        </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="flex-1 space-y-8 p-20 pt-4 h-full flex flex-col w-full">
-                            <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('about','user')} I. APRESENTAÇÃO E OBJETIVOS</h2><div class="text-[14px] text-justify pl-8 rich-text">${state.about} <br/><br/> ${state.objective}</div></section>
-                            <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} II. IDIOMAS E COMPETÊNCIAS</h2><div class="pl-8 grid grid-cols-2 text-[14px]"><ul class="list-disc pl-4">${state.languages.map(l => `<li>${l.name} - Conv: ${l.conversacao}%, Leit: ${l.leitura}%</li>`).join('')}</ul><ul class="list-disc pl-4">${state.skills.slice(0,5).map(s => `<li>${s}</li>`).join('')}</ul></div></section>
-                            <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('education','graduation-cap')} III. FORMAÇÃO ACADÉMICA</h2><div class="space-y-4 pl-8">${state.education.map(edu => `<div><p class="text-[14px] font-bold underline">${edu.institution}</p><p class="text-[14px]">${edu.degree} (${edu.period})</p></div>`).join('')}</div></section>
-                            <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('practical','briefcase')} IV. PRODUÇÃO CIENTÍFICA E PROJETOS</h2><div class="space-y-8 pl-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase tracking-tight mb-1 underline">${p.title}</h4><div class="text-[14px] text-justify rich-text">${p.description}</div></div>`).join('')}</div></section>
-                            <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="flex-1 space-y-8 p-20 pt-8 h-full flex flex-col w-full">
+                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('about','user')} I. APRESENTAÇÃO E OBJETIVOS</h2><div class="text-[14px] text-justify pl-8 rich-text">${state.about} <br/><br/> ${state.objective}</div></section>
+                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} II. IDIOMAS E COMPETÊNCIAS</h2><div class="pl-8 grid grid-cols-2 text-[14px]"><ul class="list-disc pl-4">${state.languages.map(l => `<li>${l.name} - Conv: ${l.conversacao}%, Leit: ${l.leitura}%</li>`).join('')}</ul><ul class="list-disc pl-4">${state.skills.slice(0,5).map(s => `<li>${s}</li>`).join('')}</ul></div></section>
+                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('education','graduation-cap')} III. FORMAÇÃO ACADÉMICA</h2><div class="space-y-4 pl-8">${state.education.map(edu => `<div><p class="text-[14px] font-bold underline">${edu.institution}</p><p class="text-[14px]">${edu.degree} (${edu.period})</p></div>`).join('')}</div></section>
+                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('practical','briefcase')} IV. PRODUÇÃO CIENTÍFICA E PROJETOS</h2><div class="space-y-8 pl-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase tracking-tight mb-1 underline">${p.title}</h4><div class="text-[14px] text-justify rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -889,34 +952,40 @@
         }
 
         function getCompactoLayout(t) {
+            const sF = state.layout.sidebarScale / 100;
+            const mF = state.layout.mainScale / 100;
             return `
                 <div class="flex flex-col h-full bg-white w-full">
-                    <div id="sidebar-content-inner" class="w-full shrink-0 origin-top-left" style="transform: scale(${state.layout.sidebarScale/100}); width: ${100/(state.layout.sidebarScale/100)}%;">
-                        <header class="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-6 mx-8 mt-8 w-[calc(100%-4rem)]">
-                            <div class="flex gap-4 items-center">
-                                ${renderPhotoHtml("w-16 h-16")}
-                                <div><h1 class="text-3xl font-black uppercase tracking-tighter leading-none mb-1">${state.personal.name}</h1><p class="${t.text} text-[10px] font-black uppercase tracking-widest">${state.personal.title}</p></div>
-                            </div>
-                            <div class="text-right text-[9px] font-bold text-slate-400 uppercase space-y-0.5">
-                                ${state.personal.phone ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</p>` : ''}
-                                ${state.personal.email ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</p>` : ''}
-                                ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect',s.icon)}${s.value}</p>`).join('')}
-                            </div>
-                        </header>
+                    <div class="w-full shrink-0 overflow-hidden min-h-0 bg-white border-b-2 border-slate-800 mb-6 pb-4 mx-8 mt-8 w-[calc(100%-4rem)]">
+                        <div id="sidebar-content-inner" class="origin-top-left" style="transform: scale(${sF}); width: ${100/sF}%;">
+                            <header class="flex justify-between items-end w-full">
+                                <div class="flex gap-4 items-center">
+                                    ${renderPhotoHtml("w-16 h-16")}
+                                    <div><h1 class="text-3xl font-black uppercase tracking-tighter leading-none mb-1">${state.personal.name}</h1><p class="${t.text} text-[10px] font-black uppercase tracking-widest">${state.personal.title}</p></div>
+                                </div>
+                                <div class="text-right text-[9px] font-bold text-slate-400 uppercase space-y-0.5">
+                                    ${state.personal.phone ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','phone')}${state.personal.phone}</p>` : ''}
+                                    ${state.personal.email ? `<p class="flex items-center justify-end gap-1">${getIconHtml('contactInfo','mail')}${state.personal.email}</p>` : ''}
+                                    ${state.socials.map(s => `<p class="flex items-center justify-end gap-1">${getIconHtml('connect',s.icon)}${s.value}</p>`).join('')}
+                                </div>
+                            </header>
+                        </div>
                     </div>
-                    <div id="main-content-inner" class="flex-1 flex flex-col origin-top-left" style="transform: scale(${state.layout.mainScale/100}); width: ${100/(state.layout.mainScale/100)}%; height: ${100/(state.layout.mainScale/100)}%;">
-                        <div class="flex-1 flex flex-col h-full w-full p-8 pt-0">
-                            <div class="flex-1 grid grid-cols-12 gap-8 overflow-hidden w-full">
-                                <div class="col-span-4 space-y-6 border-r border-slate-100 pr-6">
-                                    <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-[9px] text-slate-600 leading-relaxed italic rich-text">${state.about} <br/> ${state.objective}</div></section>
-                                    <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="space-y-2">${state.languages.map(l => `<div class="mb-2"><div class="flex justify-between text-[8px] font-bold mb-0.5"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-1"><div><span class="text-[6px] text-slate-400 uppercase">Conv.</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[6px] text-slate-400 uppercase">Leit.</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div></section>
-                                    <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3><div class="flex flex-wrap gap-1">${state.skills.map(s => `<span class="text-[8px] font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-200">${s}</span>`).join('')}</div></section>
+                    <div class="flex-1 relative overflow-hidden min-h-0">
+                        <div id="main-content-inner" class="absolute inset-0 origin-top-left flex flex-col" style="transform: scale(${mF}); width: ${100/mF}%; height: ${100/mF}%;">
+                            <div class="flex-1 flex flex-col h-full w-full p-8 pt-0">
+                                <div class="flex-1 grid grid-cols-12 gap-8 overflow-hidden w-full">
+                                    <div class="col-span-4 space-y-6 border-r border-slate-100 pr-6">
+                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('about','user')} ${state.titles.about}</h3><div class="text-[9px] text-slate-600 leading-relaxed italic rich-text">${state.about} <br/> ${state.objective}</div></section>
+                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="space-y-2">${state.languages.map(l => `<div class="mb-2"><div class="flex justify-between text-[8px] font-bold mb-0.5"><span>${l.name}</span></div><div class="grid grid-cols-2 gap-1"><div><span class="text-[6px] text-slate-400 uppercase">Conv.</span>${renderLangBarHtml(l.conversacao)}</div><div><span class="text-[6px] text-slate-400 uppercase">Leit.</span>${renderLangBarHtml(l.leitura)}</div></div></div>`).join('')}</div></section>
+                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3><div class="flex flex-wrap gap-1">${state.skills.map(s => `<span class="text-[8px] font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-200">${s}</span>`).join('')}</div></section>
+                                    </div>
+                                    <div class="col-span-8 space-y-6 overflow-y-auto">
+                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-1">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3><div class="space-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[12px] font-black text-slate-800 leading-none">${p.title}</h4><span class="text-[8px] font-black text-blue-500 uppercase tracking-tighter">${p.tech}</span><div class="text-[10px] text-slate-500 mt-1 leading-snug rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                    </div>
                                 </div>
-                                <div class="col-span-8 space-y-6 overflow-y-auto">
-                                    <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-1">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3><div class="space-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[12px] font-black text-slate-800 leading-none">${p.title}</h4><span class="text-[8px] font-black text-blue-500 uppercase tracking-tighter">${p.tech}</span><div class="text-[10px] text-slate-500 mt-1 leading-snug rich-text">${p.description}</div></div>`).join('')}</div></section>
-                                </div>
+                                <div class="mt-auto pt-4 flex justify-between text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </div>
-                            <div class="mt-auto pt-4 flex justify-between text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                         </div>
                     </div>
                 </div>
@@ -955,6 +1024,33 @@
             setTimeout(adjustMobileScale, 50); 
         }
 
+        // Modifica a estrutura quando o layout muda para evitar layouts sem sentido e aplicar a largura de aba default
+        function changeTheme(modeId) {
+            state.layout.layoutMode = modeId;
+            
+            // Configurações específicas para cada tema:
+            switch(modeId) {
+                case 'criativo': state.layout.sidebarWidth = 15; break;
+                case 'hibrido': state.layout.sidebarWidth = 35; break;
+                case 'tech': state.layout.sidebarWidth = 100; break;
+                case 'classico': state.layout.sidebarWidth = 100; break;
+                case 'moderno': state.layout.sidebarWidth = 100; break;
+                case 'info': state.layout.sidebarWidth = 100; break;
+                case 'funcional': state.layout.sidebarWidth = 100; break;
+                case 'cronologico': state.layout.sidebarWidth = 100; break;
+                case 'academico': state.layout.sidebarWidth = 100; break;
+                case 'compacto': state.layout.sidebarWidth = 100; break;
+                default: state.layout.sidebarWidth = 30; // standard
+            }
+            
+            state.layout.mainScale = 100;
+            state.layout.sidebarScale = 100;
+            
+            renderEditor();
+            renderPreviewHTML();
+            setTimeout(autoFit, 150); // Autofit automático
+        }
+
 
         // --- 4. RENDERIZAÇÃO DOS MENUS DE EDIÇÃO ---
         function renderEditor() {
@@ -967,11 +1063,18 @@
 
             // Update botões Temas
             const layoutBtns = document.getElementById('layout-buttons');
-            layoutBtns.innerHTML = layoutModes.map(m => `<button onclick="updateLayout('layoutMode', '${m.id}')" class="text-[10px] py-2 px-1 rounded-xl border-2 transition-all font-black uppercase ${state.layout.layoutMode === m.id ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 bg-white text-slate-400'}">${m.label}</button>`).join('');
+            layoutBtns.innerHTML = layoutModes.map(m => `<button onclick="changeTheme('${m.id}')" class="text-[10px] py-2 px-1 rounded-xl border-2 transition-all font-black uppercase ${state.layout.layoutMode === m.id ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 bg-white text-slate-400'}">${m.label}</button>`).join('');
 
             // Update botões Cores
             const colorBtns = document.getElementById('color-buttons');
             colorBtns.innerHTML = Object.keys(themeConfigs).map(c => `<button onclick="updateLayout('themeColor', '${c}')" class="w-6 h-6 rounded-full border-2 transition-transform hover:scale-125 ${state.layout.themeColor === c ? 'border-white ring-2 ring-blue-500 shadow-md' : 'border-transparent'} ${themeConfigs[c].primary}"></button>`).join('');
+
+            // Ocultar barra lateral da sidebar em temas em que não faz sentido!
+            const hasSidebar = ['standard', 'criativo', 'hibrido'].includes(state.layout.layoutMode);
+            const swContainer = document.getElementById('sidebar-width-container');
+            if (swContainer) {
+                swContainer.style.display = hasSidebar ? 'flex' : 'none';
+            }
 
             // Update Toggles Ícones
             const allOn = Object.values(state.layout.iconVisibility).every(v => v);
@@ -1003,7 +1106,6 @@
             document.getElementById('photo-img-editor').style.transform = `scale(${state.personal.photoZoom/100})`;
             document.getElementById('photo-img-editor').style.objectPosition = `${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%`;
             document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
-            document.getElementById('btn-upload-overlay').style.borderRadius = `${state.personal.photoRadius}%`;
 
             // Update Rich Texts
             updateRichText('rt-about', state.about, 'about', 'Escreva o seu resumo...');
@@ -1109,10 +1211,26 @@
         }
 
         function renderTitlesList() {
-            document.getElementById('titles-list').innerHTML = Object.keys(state.titles).map(key => `
+            const labels = {
+                about: "Título: Sobre Mim",
+                objective: "Título: Objetivo",
+                connect: "Título: Redes Sociais",
+                languages: "Título: Idiomas",
+                skills: "Título: Skills",
+                education: "Título: Educação",
+                practical: "Título: Experiência"
+            };
+            
+            let keysToRender = Object.keys(state.titles).filter(k => k !== 'portfolio');
+            if (state.layout.layoutMode === 'criativo') {
+                keysToRender.push('portfolio');
+                labels.portfolio = "Texto Lateral (Criativo)";
+            }
+
+            document.getElementById('titles-list').innerHTML = keysToRender.map(key => `
                 <div>
-                  <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">${key}</label>
-                  <input class="w-full p-2 text-xs border rounded-lg bg-white outline-none" value="${state.titles[key]}" oninput="updateSectionTitle('${key}', this.value)" />
+                  <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">${labels[key] || key}</label>
+                  <input class="w-full p-2 text-xs border rounded-lg bg-white outline-none" value="${state.titles[key] !== undefined ? state.titles[key] : ''}" oninput="updateSectionTitle('${key}', this.value)" />
                 </div>
             `).join('');
         }
