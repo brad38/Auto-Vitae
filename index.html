@@ -33,8 +33,16 @@
 
         @media print {
             html, body { margin: 0 !important; padding: 0 !important; width: 210mm; }
-            body { background: white !important; }
+            body { background: white !important; overflow: visible !important; }
             .print\:hidden { display: none !important; }
+            
+            /* Reset do wrapper de escala para a impressão nativa funcionar */
+            #cv-scale-wrapper {
+                transform: none !important;
+                height: auto !important;
+                width: 210mm !important;
+            }
+
             #cv-render { 
                 box-shadow: none !important; margin: 0 !important; width: 210mm !important; min-height: 297mm !important; height: auto !important;
                 -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -51,10 +59,10 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
     </style>
 </head>
-<body class="flex flex-col md:flex-row min-h-screen bg-slate-200 font-sans w-full text-slate-800">
+<body class="min-h-screen flex flex-col md:flex-row md:overflow-hidden overflow-x-hidden bg-slate-200 font-sans w-full text-slate-800">
 
     <!-- 🛠️ EDITOR (ESQUERDA) -->
-    <!-- md:h-screen força o scroll a ser interno no painel da esquerda apenas no PC -->
+    <!-- No PC: h-screen fixo com scroll interno. No Mobile: cresce com o conteúdo -->
     <div id="editor-panel" class="w-full md:w-[460px] flex flex-col bg-white shadow-2xl z-30 print:hidden shrink-0 md:h-screen">
         <!-- HEADER DO EDITOR -->
         <div class="p-4 border-b bg-slate-50 flex items-center justify-between shrink-0 flex-wrap gap-2">
@@ -83,6 +91,7 @@
             </div>
         </div>
 
+        <!-- CONTEÚDO DO EDITOR -->
         <div class="flex-1 p-6 space-y-10 scroll-smooth md:overflow-y-auto pb-12 md:pb-6" id="editor-forms">
 
             <!-- PREENCHIMENTO MÁGICO COM IA (COM TOGGLE E CHAVE) -->
@@ -202,16 +211,16 @@
                         </div>
                     </div>
                     <input class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-black" placeholder="Nome Completo" data-bind="personal.name" />
-                    <input class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-blue-600" placeholder="Título / Cargo" data-bind="personal.title" />
+                    <input class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-blue-600" placeholder="Título (Ex: Engenheiro de Software)" data-bind="personal.title" />
                     <div class="grid grid-cols-2 gap-2">
-                        <input class="p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Idade / Ano" data-bind="personal.age" />
+                        <input class="p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Idade (Ex: 28 anos)" data-bind="personal.age" />
                         <input class="p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Estado Civil" data-bind="personal.status" />
                     </div>
                     <div class="grid grid-cols-2 gap-2 border-t border-slate-200 pt-4 mt-2">
                         <input class="p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="E-mail" data-bind="personal.email" />
                         <input class="p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Telefone" data-bind="personal.phone" />
                     </div>
-                    <input class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Localização / Morada" data-bind="personal.location" />
+                    <input class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm" placeholder="Localização (Ex: Lisboa, PT)" data-bind="personal.location" />
                 </div>
             </section>
 
@@ -291,45 +300,84 @@
         </div>
     </div>
 
-    <!-- 📄 PREVIEW (DIREITA / EMBAIXO NO MOBILE) -->
-    <div id="preview-container" class="w-full md:flex-1 flex flex-col items-center justify-start p-4 md:p-8 bg-slate-300 md:h-screen md:overflow-auto print:p-0 print:bg-white transition-all duration-300 z-40">
+    <!-- 📄 PREVIEW (DIREITA NO PC / EMBAIXO NO MOBILE) -->
+    <!-- md:h-screen e overflow-y-auto habilitam scroll interno só para ele no PC -->
+    <div id="preview-container" class="w-full md:flex-1 flex flex-col items-center justify-start p-4 md:p-8 bg-slate-300 md:h-screen md:overflow-y-auto overflow-x-hidden print:p-0 print:bg-white transition-all duration-300 z-40">
         
-        <!-- BOTÃO TELA CHEIA MOBILE -->
-        <button onclick="toggleFullscreenPreview()" class="md:hidden w-full max-w-[210mm] bg-slate-800 text-white font-bold uppercase tracking-widest py-3 px-4 rounded-xl mb-4 shadow-lg flex justify-center items-center gap-2" id="btn-fullscreen">
+        <!-- BOTÃO TELA CHEIA MOBILE (Fixo no topo ao rolar no modo tela cheia) -->
+        <button onclick="toggleFullscreenPreview()" class="md:hidden w-full max-w-[210mm] sticky top-4 z-50 bg-slate-800 text-white font-bold uppercase tracking-widest py-3 px-4 rounded-xl mb-4 shadow-[0_4px_15px_rgba(0,0,0,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-95" id="btn-fullscreen">
             <i data-lucide="maximize" class="w-4 h-4"></i> <span>Ver em Tela Cheia</span>
         </button>
 
-        <!-- CONTAINER DO CURRÍCULO -->
-        <div id="cv-render" class="bg-white shadow-2xl flex flex-col transition-all duration-300 print:shadow-none print:m-0 relative box-border shrink-0 overflow-hidden" style="width: 210mm; min-height: 297mm;">
-            <!-- O Layout será injetado aqui -->
+        <!-- WRAPPER PARA ESCALAR NO MOBILE AUTOMATICAMENTE -->
+        <div id="cv-scale-wrapper" class="origin-top flex justify-center transition-all duration-300" style="width: 210mm;">
+            <!-- CONTAINER DO CURRÍCULO -->
+            <div id="cv-render" class="bg-white shadow-2xl flex flex-col transition-all duration-300 print:shadow-none print:m-0 relative box-border shrink-0 overflow-hidden w-full" style="min-height: 297mm;">
+                <!-- O Layout será injetado aqui -->
+            </div>
         </div>
     </div>
 
     <!-- JAVASCRIPT DO SISTEMA -->
     <script>
-        // --- 1. ESTADO GLOBAL ---
+        // --- 1. CHAVE E ESTADO GLOBAL ---
+        const apiKey = ""; // A chave da API Gemini é fornecida pelo ambiente, não modifique
+        
+        // Base comum para não repetir propriedades visuais nos perfis
         const layoutBase = {
             sidebarWidth: 30, themeColor: 'blue', layoutMode: 'standard', scaleTarget: 'main', mainScale: 100, sidebarScale: 100,
             iconVisibility: { profile: true, contactInfo: true, connect: true, languages: true, skills: true, about: true, objective: true, education: true, practical: true }
         };
         const titlesBase = { about: "Sobre Mim", objective: "Objetivo Profissional", connect: "Conecte-se", languages: "Idiomas", skills: "Habilidades Técnicas", education: "Formação Acadêmica", practical: "Experiência / Projetos" };
 
-        const defaultProfile = {
-            personal: { name: "O Seu Nome", title: "O Seu Cargo Profissional", age: "Idade", status: "Estado Civil", email: "email@exemplo.com", phone: "(00) 00000-0000", location: "Sua Cidade, País", photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 },
-            about: "Escreva aqui um breve resumo sobre si, a sua experiência, paixões profissionais e pontos fortes.",
-            objective: "Descreva o seu principal objetivo ou a posição que procura alcançar.",
-            socials: [{ id: 1, platform: 'LinkedIn', value: 'linkedin.com/in/seuperfil', icon: 'linkedin' }, { id: 2, platform: 'GitHub', value: 'github.com/seuperfil', icon: 'github' }],
-            footer: { left: "Informação Extra", right: "Auto Vitae" },
-            education: [{ institution: "Nome da Universidade / Escola", degree: "Nome do Curso", period: "Ano Início - Ano Fim" }],
-            practicalTraining: [
-                { title: "Cargo ou Projeto Exemplo", tech: "Ferramenta 1, Ferramenta 2", description: "<ul><li>Descreva aqui uma das suas responsabilidades.</li><li>Mencione uma conquista importante.</li></ul>" }
-            ],
-            languages: [{ name: "Inglês", conversacao: 50, leitura: 50 }],
-            skills: ["Habilidade 1", "Habilidade 2", "Habilidade 3"]
-        };
+        const exampleProfiles = [
+            {
+                personal: { name: "Alexandre Moreira", title: "Desenvolvedor Full Stack Sênior", age: "28 anos", status: "Solteiro", email: "alexandre.dev@email.com", phone: "(11) 98765-4321", location: "São Paulo, SP", photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 },
+                about: "Sou um desenvolvedor apaixonado por criar soluções eficientes e escaláveis. Tenho experiência sólida na construção de aplicações web modernas, desde a concepção da interface até a estruturação da base de dados. Sou movido por novos desafios.",
+                objective: "Estou em busca de uma oportunidade como Desenvolvedor Sênior numa empresa inovadora, onde possa aplicar as minhas habilidades de arquitetura de software e contribuir diretamente para o sucesso da equipa.",
+                socials: [{ id: 1, platform: 'LinkedIn', value: 'linkedin.com/in/alexandremoreira', icon: 'linkedin' }, { id: 2, platform: 'GitHub', value: 'github.com/alexmoreira', icon: 'github' }],
+                footer: { left: "Portfólio online disponível", right: "Auto Vitae 2026" },
+                education: [{ institution: "Universidade de São Paulo (USP)", degree: "Bacharelado em Engenharia de Software", period: "2018 - 2022" }],
+                practicalTraining: [
+                    { title: "Desenvolvedor Frontend Sênior | TechNova", tech: "React, TypeScript, TailwindCSS", description: "<ul><li>Liderança técnica na reestruturação da plataforma principal.</li><li>Aumento de 40% na performance de carregamento das páginas.</li></ul>" },
+                    { title: "Desenvolvedor Backend Pleno | CloudSys", tech: "Node.js, PostgreSQL, Docker", description: "<ul><li>Desenvolvimento de APIs RESTful para integração mobile.</li><li>Implementação de rotinas de CI/CD para automatização.</li></ul>" }
+                ],
+                languages: [{ name: "Português", conversacao: 100, leitura: 100 }, { name: "Inglês", conversacao: 80, leitura: 95 }],
+                skills: ["JavaScript", "TypeScript", "React.js", "Node.js", "Python", "SQL", "Git", "Docker"]
+            },
+            {
+                personal: { name: "Mariana Costa", title: "Product Designer UX/UI", age: "26 anos", status: "Casada", email: "mari.design@email.com", phone: "(21) 99999-1111", location: "Rio de Janeiro, RJ", photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 },
+                about: "Designer criativa focada em acessibilidade e interfaces limpas. Acredito firmemente no design centrado no utilizador e em metodologias ágeis para entrega contínua de valor. Tenho forte domínio em prototipagem de alta fidelidade.",
+                objective: "Atuar como UX/UI Lead para construir produtos digitais de impacto e orientar equipas juniores na criação de interfaces excecionais.",
+                socials: [{ id: 1, platform: 'LinkedIn', value: 'linkedin.com/in/marianacosta', icon: 'linkedin' }, { id: 2, platform: 'Dribbble', value: 'dribbble.com/maridesign', icon: 'globe' }],
+                footer: { left: "Behance: behance.net/maridesign", right: "Auto Vitae 2026" },
+                education: [{ institution: "ESPM", degree: "Bacharelado em Design Digital", period: "2016 - 2020" }],
+                practicalTraining: [
+                    { title: "UX Designer Lead | CreativeApp", tech: "Figma, Miro, Notion", description: "<ul><li>Redesign completo do aplicativo principal, aumentando a retenção em 25%.</li><li>Criação do Design System do zero, reduzindo o tempo de desenvolvimento.</li></ul>" },
+                    { title: "UI Designer | Agência Luz", tech: "Adobe XD, Illustrator", description: "<ul><li>Desenvolvimento de wireframes e interfaces para e-commerces.</li></ul>" }
+                ],
+                languages: [{ name: "Português", conversacao: 100, leitura: 100 }, { name: "Inglês", conversacao: 90, leitura: 100 }, { name: "Espanhol", conversacao: 40, leitura: 60 }],
+                skills: ["Figma", "Prototipagem", "User Research", "Wireframing", "Design System", "CSS/HTML"]
+            },
+            {
+                personal: { name: "Carlos Mendes", title: "Cientista de Dados", age: "31 anos", status: "Solteiro", email: "carlos.data@email.com", phone: "(31) 97777-2222", location: "Belo Horizonte, MG", photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 },
+                about: "Especialista em transformar dados brutos em insights estratégicos. Tenho um background analítico muito forte em estatística e na criação de modelos de machine learning que otimizam processos financeiros.",
+                objective: "Integrar uma equipa inovadora focada em Inteligência Artificial e Modelagem Preditiva para revolucionar a tomada de decisão corporativa.",
+                socials: [{ id: 1, platform: 'LinkedIn', value: 'linkedin.com/in/carlosmendes', icon: 'linkedin' }, { id: 2, platform: 'GitHub', value: 'github.com/carlosdata', icon: 'github' }],
+                footer: { left: "Lattes: 112233445566", right: "Auto Vitae 2026" },
+                education: [{ institution: "UFMG", degree: "Mestrado em Ciência da Computação", period: "2015 - 2017" }, { institution: "UFMG", degree: "Estatística", period: "2010 - 2014" }],
+                practicalTraining: [
+                    { title: "Data Scientist Sênior | DataCorp", tech: "Python, Pandas, TensorFlow", description: "<ul><li>Desenvolvimento de modelos de predição de churn com 92% de precisão.</li><li>Automação de relatórios executivos usando dashboards dinâmicos.</li></ul>" },
+                    { title: "Engenheiro de Dados | FinBank", tech: "SQL, Spark, AWS", description: "<ul><li>Construção e manutenção de pipelines de dados em tempo real.</li></ul>" }
+                ],
+                languages: [{ name: "Português", conversacao: 100, leitura: 100 }, { name: "Inglês", conversacao: 70, leitura: 100 }],
+                skills: ["Python", "SQL", "Machine Learning", "Estatística", "TensorFlow", "Pandas", "PowerBI"]
+            }
+        ];
 
-        // Carrega o perfil modelo vazio por defeito
-        let state = { ...defaultProfile, layout: JSON.parse(JSON.stringify(layoutBase)), titles: JSON.parse(JSON.stringify(titlesBase)) };
+        // Sorteia um perfil aleatório ao iniciar
+        const randomProfile = exampleProfiles[Math.floor(Math.random() * exampleProfiles.length)];
+        let state = { ...randomProfile, layout: JSON.parse(JSON.stringify(layoutBase)), titles: JSON.parse(JSON.stringify(titlesBase)) };
 
         const themeConfigs = {
             blue: { primary: 'bg-blue-600', text: 'text-blue-600', border: 'border-blue-600', light: 'bg-blue-50', sidebar: 'bg-slate-800', bar: 'bg-blue-400' },
@@ -350,7 +398,7 @@
 
         const iconLabels = { profile: "Perfil", contactInfo: "Contatos", connect: "Redes Sociais", languages: "Idiomas", skills: "Skills", about: "Sobre Mim", objective: "Objetivo", education: "Educação", practical: "Experiência" };
 
-        // Dicionário de SVGs embutidos para marcas do Lucide
+        // Dicionário de SVGs embutidos para resolver o abandono dos ícones de marcas no Lucide
         const brandSVGs = {
             linkedin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>`,
             github: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
@@ -358,8 +406,9 @@
             twitter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>`
         };
 
-        // --- GESTÃO DA TELA CHEIA (MOBILE) ---
+        // --- GESTÃO DA TELA CHEIA E ESCALA MOBILE ---
         let isFullscreen = false;
+        
         function toggleFullscreenPreview() {
             isFullscreen = !isFullscreen;
             const container = document.getElementById('preview-container');
@@ -378,7 +427,35 @@
                 btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Volta para o botão suavemente
             }
             lucide.createIcons();
+            setTimeout(adjustMobileScale, 50); // Recalcula a escala A4 com o novo tamanho da tela
         }
+
+        // Função responsável por calcular o tamanho da tela e fazer o A4 caber direitinho sem cortar!
+        function adjustMobileScale() {
+            const wrapper = document.getElementById('cv-scale-wrapper');
+            const render = document.getElementById('cv-render');
+            if (!wrapper || !render) return;
+
+            // Se for menor que 850px (mobile / tablet em pé)
+            if (window.innerWidth < 850) {
+                const availableWidth = document.getElementById('preview-container').clientWidth - 32; // 16px padding de cada lado
+                const originalWidth = 794; // approx 210mm em pixels
+                let scale = availableWidth / originalWidth;
+                if (scale > 1) scale = 1; // Não queremos que faça upscale gigante, apenas shrink
+                
+                wrapper.style.transform = `scale(${scale})`;
+                wrapper.style.transformOrigin = 'top center';
+                
+                // Reduzir a altura física do wrapper para corresponder ao visual encolhido 
+                // e não deixar um scroll em branco infinito em baixo do currículo!
+                wrapper.style.height = `${render.offsetHeight * scale}px`;
+            } else {
+                wrapper.style.transform = 'none';
+                wrapper.style.height = 'auto';
+            }
+        }
+        window.addEventListener('resize', adjustMobileScale);
+
 
         // --- GESTÃO DA IA E API KEY ---
         function toggleAI() {
@@ -922,8 +999,10 @@
 
             cvRender.innerHTML = html;
             lucide.createIcons(); // Recria os ícones inseridos dinamicamente
+            
+            // Recalcula o scale no mobile após renderizar para garantir o height correto
+            setTimeout(adjustMobileScale, 50); 
         }
-
 
         // --- 4. RENDERIZAÇÃO DOS MENUS DE EDIÇÃO ---
         function renderEditor() {
@@ -1338,6 +1417,13 @@
             text.innerText = 'GERANDO...';
             lucide.createIcons();
 
+            // Desativar a escala temporariamente para gerar o PDF A4 nativo em alta qualidade
+            const wrapper = document.getElementById('cv-scale-wrapper');
+            const oldTransform = wrapper.style.transform;
+            const oldHeight = wrapper.style.height;
+            wrapper.style.transform = 'none';
+            wrapper.style.height = 'auto';
+
             const opt = {
                 margin: 0, filename: `Curriculo_${state.personal.name.replace(/\s+/g,'_')}.pdf`,
                 image: { type: 'jpeg', quality: 1 },
@@ -1345,16 +1431,25 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            window.html2pdf().set(opt).from(document.getElementById('cv-render')).toPdf().get('pdf').then(pdf => {
-                const totalPages = pdf.internal.getNumberOfPages();
-                for (let i = totalPages; i > 1; i--) pdf.deletePage(i);
-            }).save().then(() => {
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                icon.setAttribute('data-lucide', 'download');
-                icon.classList.remove('animate-spin');
-                text.innerText = 'PDF';
-                lucide.createIcons();
-            }).catch(() => window.print());
+            setTimeout(() => {
+                window.html2pdf().set(opt).from(document.getElementById('cv-render')).toPdf().get('pdf').then(pdf => {
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = totalPages; i > 1; i--) pdf.deletePage(i);
+                }).save().then(() => {
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    icon.setAttribute('data-lucide', 'download');
+                    icon.classList.remove('animate-spin');
+                    text.innerText = 'PDF';
+                    lucide.createIcons();
+                    // Restaurar a escala
+                    wrapper.style.transform = oldTransform;
+                    wrapper.style.height = oldHeight;
+                }).catch(() => {
+                    window.print();
+                    wrapper.style.transform = oldTransform;
+                    wrapper.style.height = oldHeight;
+                });
+            }, 50); // Aguardar o DOM ajustar sem escala antes de tirar print
         }
 
         // --- BINDING INICIAL ---
