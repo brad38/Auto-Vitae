@@ -23,6 +23,27 @@
         .editor-content b, .editor-content strong { font-weight: 800; }
         .editor-content i, .editor-content em { font-style: italic; }
 
+        /* Padroniza o alinhamento das descrições em Formação Prática.
+           Também corrige <li> solto (sem <ul>/<ol>), que deslocava o marcador para a esquerda. */
+        .practical-entry > .rich-text {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+        .practical-entry > .rich-text > ul,
+        .practical-entry > .rich-text > ol {
+            margin-left: 0 !important;
+            padding-left: 1.5rem !important;
+            list-style-position: outside !important;
+        }
+        .practical-entry > .rich-text > li {
+            margin-left: 1.5rem !important;
+            padding-left: 0 !important;
+            list-style-position: outside !important;
+        }
+        .practical-entry > .rich-text > li + li {
+            margin-top: 0.25rem;
+        }
+
         .page-break-inside-avoid {
             page-break-inside: avoid;
             break-inside: avoid;
@@ -510,7 +531,7 @@
                                 <section class="mb-6">
                                     <div class="flex items-center gap-3 mb-8 font-black uppercase tracking-widest text-slate-800">${getIconHtml('practical', 'briefcase', t.text)} ${state.titles.practical}</div>
                                     <div class="space-y-8 ${state.layout.iconVisibility.practical ? 'pl-10' : ''}">
-                                        ${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-black text-slate-800 uppercase mb-1">${p.title}</h4><p class="text-[10px] font-black ${t.text} mb-3 uppercase tracking-widest border-b pb-1 border-slate-50">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                        ${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-[14px] font-black text-slate-800 uppercase mb-1">${p.title}</h4><p class="text-[10px] font-black ${t.text} mb-3 uppercase tracking-widest border-b pb-1 border-slate-50">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}
                                     </div>
                                 </section>
                                 <div class="mt-auto pt-8 pb-8 border-t border-slate-50 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">${state.footer.right}</div>
@@ -552,7 +573,7 @@
                                     </section>
                                     <section>
                                         <h3 class="text-xs font-black uppercase mb-6 ${t.text} tracking-widest border-b pb-2 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                        <div class="space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-sm font-black text-slate-800">${p.title}</h4><span class="text-[10px] text-slate-400 font-black">${p.tech}</span><div class="text-[12px] text-slate-500 mt-2 rich-text">${p.description}</div></div>`).join('')}</div>
+                                        <div class="space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-sm font-black text-slate-800">${p.title}</h4><span class="text-[10px] text-slate-400 font-black">${p.tech}</span><div class="text-[12px] text-slate-500 mt-2 rich-text">${p.description}</div></div>`).join('')}</div>
                                     </section>
                                 </div>
                                 <div class="col-span-4 space-y-10">
@@ -608,7 +629,7 @@
                                     </section>
                                     <section>
                                        <h3 class="text-emerald-500 text-xs font-black mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">${getIconHtml('practical','code')} # ${state.titles.practical}</h3>
-                                       ${state.practicalTraining.map(p => `<div class="mb-6 bg-slate-900/50 p-4 border-l-2 border-emerald-500 page-break-inside-avoid"><h4 class="text-white text-sm font-bold uppercase">${p.title}</h4><p class="text-[10px] opacity-50 mb-2">stack: [${p.tech}]</p><div class="text-xs leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                       ${state.practicalTraining.map(p => `<div class="mb-6 bg-slate-900/50 p-4 border-l-2 border-emerald-500 page-break-inside-avoid practical-entry"><h4 class="text-white text-sm font-bold uppercase">${p.title}</h4><p class="text-[10px] opacity-50 mb-2">stack: [${p.tech}]</p><div class="text-xs leading-relaxed rich-text">${p.description}</div></div>`).join('')}
                                     </section>
                                 </div>
                                 <div class="col-span-4 space-y-8">
@@ -671,7 +692,7 @@
                                     </section>
                                     <section class="col-span-2 space-y-6">
                                         <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('practical','briefcase')} / ${state.titles.practical}</h3>
-                                        ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><h4 class="font-black text-slate-800">${p.title}</h4><p class="text-[10px] font-black text-blue-500 mb-2">${p.tech}</p><div class="text-[12px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
+                                        ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid practical-entry"><h4 class="font-black text-slate-800">${p.title}</h4><p class="text-[10px] font-black text-blue-500 mb-2">${p.tech}</p><div class="text-[12px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
                                     </section>
                                     <section class="space-y-6">
                                         <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 border-slate-200 flex items-center gap-2">${getIconHtml('languages','globe')} / ${state.titles.languages}</h3>
@@ -737,7 +758,7 @@
                                     </div>
                                     <section>
                                         <h3 class="text-sm font-black uppercase tracking-widest border-b-2 pb-1 ${t.text} border-slate-100 flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                        <div class="mt-6 space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase">${p.title}</h4><p class="text-[10px] font-black text-slate-400 mb-2">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div>
+                                        <div class="mt-6 space-y-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-[14px] font-bold uppercase">${p.title}</h4><p class="text-[10px] font-black text-slate-400 mb-2">${p.tech}</p><div class="text-[12px] text-slate-600 leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div>
                                     </section>
                                     <div class="mt-auto border-t border-slate-100 pt-8 pb-4 flex justify-end text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 w-full">${state.footer.right}</div>
                                 </main>
@@ -774,7 +795,7 @@
                                 <section><h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h3><div class="flex flex-col gap-2">${state.languages.map(l => `<div class="text-[13px] font-bold">${l.name}: <span class="font-normal italic">Conversação ${l.conversacao}% | Leitura ${l.leitura}%</span></div>`).join('')}</div></section>
                                 <section>
                                     <h3 class="text-[14px] font-black uppercase border-b border-slate-200 mb-3 tracking-widest flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3>
-                                    ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid"><div class="flex justify-between font-bold text-[13px] uppercase"><span>${p.title}</span></div><p class="text-[11px] font-bold text-slate-500 italic mb-2">${p.tech}</p><div class="text-[13px] text-justify leading-relaxed rich-text">${p.description}</div></div>`).join('')}
+                                    ${state.practicalTraining.map(p => `<div class="mb-6 page-break-inside-avoid practical-entry"><div class="flex justify-between font-bold text-[13px] uppercase"><span>${p.title}</span></div><p class="text-[11px] font-bold text-slate-500 italic mb-2">${p.tech}</p><div class="text-[13px] text-justify leading-relaxed rich-text">${p.description}</div></div>`).join('')}
                                 </section>
                                 <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </div>
@@ -816,7 +837,7 @@
                                     <div>
                                         <div class="flex items-center gap-3 mb-6">${getIconHtml('practical','briefcase',t.text)}<h3 class="text-lg font-black uppercase tracking-tight">${state.titles.practical}</h3></div>
                                         <div class="space-y-8 relative ml-4 border-l-2 border-slate-200 pl-10">
-                                            ${state.practicalTraining.map((p, i) => `<div class="relative page-break-inside-avoid"><div class="absolute -left-[51px] top-0 w-8 h-8 rounded-full ${t.primary} flex items-center justify-center text-white border-4 border-white font-bold text-xs">${i+1}</div><h4 class="text-[14px] font-black text-slate-800 leading-none">${p.title}</h4><p class="text-[10px] font-bold text-blue-500 my-1 uppercase">${p.tech}</p><div class="text-[11px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
+                                            ${state.practicalTraining.map((p, i) => `<div class="relative page-break-inside-avoid practical-entry"><div class="absolute -left-[51px] top-0 w-8 h-8 rounded-full ${t.primary} flex items-center justify-center text-white border-4 border-white font-bold text-xs">${i+1}</div><h4 class="text-[14px] font-black text-slate-800 leading-none">${p.title}</h4><p class="text-[10px] font-bold text-blue-500 my-1 uppercase">${p.tech}</p><div class="text-[11px] text-slate-500 leading-snug rich-text">${p.description}</div></div>`).join('')}
                                         </div>
                                     </div>
                                 </section>
@@ -862,7 +883,7 @@
                                     <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('skills','terminal')} ${state.titles.skills}</h2><div class="flex flex-wrap gap-2">${state.skills.map(s => `<span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold">${s}</span>`).join('')}</div></div>
                                     <div><h2 class="text-sm font-black uppercase border-b-2 border-slate-100 mb-4 pb-1 flex items-center gap-2">${getIconHtml('languages','globe')} ${state.titles.languages}</h2><div class="space-y-3">${state.languages.map(l => `<div class="text-[11px] font-bold flex justify-between"><span>${l.name}</span><span class="${t.text}">C: ${l.conversacao}% | L: ${l.leitura}%</span></div>`).join('')}</div></div>
                                 </section>
-                                <section><h2 class="text-lg font-black uppercase border-b-4 border-slate-100 mb-6 pb-2 tracking-tight flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h2><div class="grid grid-cols-2 gap-x-12 gap-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[13px] font-bold uppercase mb-1">${p.title}</h4><div class="text-[11px] text-slate-500 font-medium leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                <section><h2 class="text-lg font-black uppercase border-b-4 border-slate-100 mb-6 pb-2 tracking-tight flex items-center gap-2">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h2><div class="grid grid-cols-2 gap-x-12 gap-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-[13px] font-bold uppercase mb-1">${p.title}</h4><div class="text-[11px] text-slate-500 font-medium leading-relaxed rich-text">${p.description}</div></div>`).join('')}</div></section>
                                 <div class="mt-auto border-t border-slate-100 pt-6 pb-4 flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </main>
                         </div>
@@ -903,7 +924,7 @@
                                 
                                 <div class="mt-12 ml-28 border-l-2 border-slate-200 pl-8 space-y-12">
                                     ${state.practicalTraining.map((p, i) => `
-                                    <div class="relative page-break-inside-avoid">
+                                    <div class="relative page-break-inside-avoid practical-entry">
                                         <div class="absolute top-1 -left-[37px] w-3 h-3 rounded-full ${t.primary} ring-4 ring-white"></div>
                                         <div class="absolute top-0.5 -left-[120px] w-20 text-right text-[10px] font-black ${t.text} uppercase tracking-widest">PROJETO ${i+1}</div>
                                         <h4 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">${p.title}</h4>
@@ -942,7 +963,7 @@
                                 <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('about','user')} I. APRESENTAÇÃO E OBJETIVOS</h2><div class="text-[14px] text-justify pl-8 rich-text">${state.about} <br/><br/> ${state.objective}</div></section>
                                 <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('languages','globe')} II. IDIOMAS E COMPETÊNCIAS</h2><div class="pl-8 grid grid-cols-2 text-[14px]"><ul class="list-disc pl-4">${state.languages.map(l => `<li>${l.name} - Conv: ${l.conversacao}%, Leit: ${l.leitura}%</li>`).join('')}</ul><ul class="list-disc pl-4">${state.skills.slice(0,5).map(s => `<li>${s}</li>`).join('')}</ul></div></section>
                                 <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('education','graduation-cap')} III. FORMAÇÃO ACADÉMICA</h2><div class="space-y-4 pl-8">${state.education.map(edu => `<div><p class="text-[14px] font-bold underline">${edu.institution}</p><p class="text-[14px]">${edu.degree} (${edu.period})</p></div>`).join('')}</div></section>
-                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('practical','briefcase')} IV. PRODUÇÃO CIENTÍFICA E PROJETOS</h2><div class="space-y-8 pl-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[14px] font-bold uppercase tracking-tight mb-1 underline">${p.title}</h4><div class="text-[14px] text-justify rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                <section><h2 class="text-[16px] font-bold uppercase italic border-b border-slate-300 mb-4 flex items-center gap-2">${getIconHtml('practical','briefcase')} IV. PRODUÇÃO CIENTÍFICA E PROJETOS</h2><div class="space-y-8 pl-8">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-[14px] font-bold uppercase tracking-tight mb-1 underline">${p.title}</h4><div class="text-[14px] text-justify rich-text">${p.description}</div></div>`).join('')}</div></section>
                                 <div class="mt-auto border-t-2 border-slate-900 pt-6 pb-4 flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
                             </div>
                         </div>
@@ -981,7 +1002,7 @@
                                         <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">${getIconHtml('skills','terminal')} ${state.titles.skills}</h3><div class="flex flex-wrap gap-1">${state.skills.map(s => `<span class="text-[8px] font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-200">${s}</span>`).join('')}</div></section>
                                     </div>
                                     <div class="col-span-8 space-y-6 overflow-y-auto">
-                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-1">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3><div class="space-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid"><h4 class="text-[12px] font-black text-slate-800 leading-none">${p.title}</h4><span class="text-[8px] font-black text-blue-500 uppercase tracking-tighter">${p.tech}</span><div class="text-[10px] text-slate-500 mt-1 leading-snug rich-text">${p.description}</div></div>`).join('')}</div></section>
+                                        <section><h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-1">${getIconHtml('practical','briefcase')} ${state.titles.practical}</h3><div class="space-y-6">${state.practicalTraining.map(p => `<div class="page-break-inside-avoid practical-entry"><h4 class="text-[12px] font-black text-slate-800 leading-none">${p.title}</h4><span class="text-[8px] font-black text-blue-500 uppercase tracking-tighter">${p.tech}</span><div class="text-[10px] text-slate-500 mt-1 leading-snug rich-text">${p.description}</div></div>`).join('')}</div></section>
                                     </div>
                                 </div>
                                 <div class="mt-auto pt-4 flex justify-between text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] w-full"><span>${state.footer.left}</span><span>${state.footer.right}</span></div>
