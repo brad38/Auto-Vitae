@@ -187,7 +187,7 @@
                     <div class="flex items-start gap-4 border-b border-slate-200 pb-4">
                         <div class="relative group shrink-0">
                             <div id="photo-preview-editor" class="w-24 h-24 border-2 border-white shadow-md overflow-hidden flex items-center justify-center shrink-0 bg-slate-200 relative">
-                                <img id="photo-img-editor" class="absolute inset-0 block max-w-none" style="width:100%; height:100%; object-fit:cover; object-position:50% 50%; transform-origin:center;" />
+                                <img id="photo-img-editor" class="photo-crop-img absolute max-w-none" onload="fitPhotoImage(this)" />
                             </div>
                             <button onclick="document.getElementById('upload-photo').click()" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" id="btn-upload-overlay">
                                 <i data-lucide="upload" class="w-4 h-4 mb-1"></i>
@@ -447,9 +447,42 @@
             target[last] = value;
         };
 
+        // Mantém a proporção ORIGINAL da imagem em qualquer layout.
+        // O crop/zoom é calculado em pixels a partir de naturalWidth/naturalHeight,
+        // evitando qualquer achatamento horizontal ou vertical.
+        function fitPhotoImage(img) {
+            if (!img || !img.parentElement || !img.naturalWidth || !img.naturalHeight) return;
+
+            const frame = img.parentElement;
+            const frameW = frame.clientWidth;
+            const frameH = frame.clientHeight;
+            if (!frameW || !frameH) {
+                requestAnimationFrame(() => fitPhotoImage(img));
+                return;
+            }
+
+            const zoom = Math.max(1, (Number(state.personal.photoZoom) || 100) / 100);
+            const baseScale = Math.max(frameW / img.naturalWidth, frameH / img.naturalHeight);
+            const width = img.naturalWidth * baseScale * zoom;
+            const height = img.naturalHeight * baseScale * zoom;
+
+            const posX = Math.min(100, Math.max(0, Number(state.personal.photoOffsetX) || 50)) / 100;
+            const posY = Math.min(100, Math.max(0, Number(state.personal.photoOffsetY) || 50)) / 100;
+
+            img.style.position = 'absolute';
+            img.style.maxWidth = 'none';
+            img.style.maxHeight = 'none';
+            img.style.width = `${width}px`;
+            img.style.height = `${height}px`;
+            img.style.left = `${(frameW - width) * posX}px`;
+            img.style.top = `${(frameH - height) * posY}px`;
+            img.style.transform = 'none';
+            img.style.objectFit = 'unset';
+        }
+
         const renderPhotoHtml = (extraClasses) => `
-            <div class="overflow-hidden flex items-center justify-center shrink-0 bg-slate-200 relative ${extraClasses}" style="border-radius: ${state.personal.photoRadius}%">
-                <img src="${state.personal.photoUrl}" class="absolute inset-0 block max-w-none" style="width:100%; height:100%; object-fit:cover; object-position: ${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%; transform: scale(${state.personal.photoZoom / 100}); transform-origin:center;" />
+            <div class="overflow-hidden shrink-0 bg-slate-200 relative ${extraClasses}" style="border-radius: ${state.personal.photoRadius}%">
+                <img src="${state.personal.photoUrl}" class="photo-crop-img absolute max-w-none" onload="fitPhotoImage(this)" />
             </div>
         `;
 
@@ -1039,6 +1072,9 @@
             }
 
             cvRender.innerHTML = html;
+            cvRender.querySelectorAll('.photo-crop-img').forEach(img => {
+                if (img.complete) requestAnimationFrame(() => fitPhotoImage(img));
+            });
             lucide.createIcons(); // Recria os ícones inseridos dinamicamente
             
             // Recalcula o scale no mobile após renderizar para garantir o height correto
@@ -1123,9 +1159,9 @@
             document.getElementById('lbl-photoZoom').innerText = `${state.personal.photoZoom}%`;
 
             // Update Foto preview no editor
-            document.getElementById('photo-img-editor').src = state.personal.photoUrl;
-            document.getElementById('photo-img-editor').style.transform = `scale(${state.personal.photoZoom/100})`;
-            document.getElementById('photo-img-editor').style.objectPosition = `${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%`;
+            const editorPhoto = document.getElementById('photo-img-editor');
+            editorPhoto.src = state.personal.photoUrl;
+            if (editorPhoto.complete) requestAnimationFrame(() => fitPhotoImage(editorPhoto));
             document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
 
             // Update Rich Texts
@@ -1661,8 +1697,8 @@
 
                 // Update visual imediato da foto
                 if(el.dataset.bind.startsWith('personal.photo')) {
-                    document.getElementById('photo-img-editor').style.transform = `scale(${state.personal.photoZoom/100})`;
-                    document.getElementById('photo-img-editor').style.objectPosition = `${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%`;
+                    const editorPhoto = document.getElementById('photo-img-editor');
+                    if (editorPhoto) fitPhotoImage(editorPhoto);
                     document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
                     document.getElementById('btn-upload-overlay').style.borderRadius = `${state.personal.photoRadius}%`;
                 }
