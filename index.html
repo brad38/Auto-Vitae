@@ -23,8 +23,7 @@
         .editor-content b, .editor-content strong { font-weight: 800; }
         .editor-content i, .editor-content em { font-style: italic; }
 
-        /* Padroniza o alinhamento das descrições em Formação Prática.
-           Também corrige <li> solto (sem <ul>/<ol>), que deslocava o marcador para a esquerda. */
+        /* Padroniza o alinhamento das descrições em Formação Prática. */
         .practical-entry > .rich-text {
             margin-left: 0 !important;
             padding-left: 0 !important;
@@ -54,7 +53,6 @@
             body { background: white !important; overflow: hidden !important; }
             .print\:hidden { display: none !important; }
             
-            /* Reset do wrapper de escala para a impressão nativa funcionar perfeitamente */
             #cv-scale-wrapper {
                 transform: none !important;
                 height: 297mm !important;
@@ -113,7 +111,6 @@
                     <h2 class="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
                         <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Preenchimento Automático
                     </h2>
-                    <!-- Toggle Checkbox (Interruptor) -->
                     <label class="relative inline-flex items-center cursor-pointer" title="Ativar/Desativar Algoritmo">
                       <input type="checkbox" id="ai-enable-toggle" class="sr-only peer" checked onchange="toggleAlgoritmo()">
                       <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
@@ -315,14 +312,12 @@
     <!-- JAVASCRIPT DO SISTEMA -->
     <script>
         // --- 1. ESTADO GLOBAL ---
-        // Base comum para não repetir propriedades visuais nos perfis
         const layoutBase = {
             sidebarWidth: 30, themeColor: 'blue', layoutMode: 'standard', scaleTarget: 'main', mainScale: 100, sidebarScale: 100,
             iconVisibility: { profile: true, contactInfo: true, connect: true, languages: true, skills: true, about: true, objective: true, education: true, practical: true }
         };
         const titlesBase = { about: "Sobre Mim", objective: "Objetivo Profissional", connect: "Conecte-se", languages: "Idiomas", skills: "Habilidades Técnicas", education: "Formação Acadêmica", practical: "Experiência / Projetos", portfolio: "PORTFÓLIO" };
 
-        // PERFIL GENÉRICO COMO PADRÃO
         const defaultProfile = {
             personal: { 
                 name: "O Seu Nome", 
@@ -352,7 +347,6 @@
             skills: ["Habilidade 1", "Habilidade 2", "Habilidade 3"]
         };
 
-        // Carrega o perfil genérico
         let state = { ...defaultProfile, layout: JSON.parse(JSON.stringify(layoutBase)), titles: JSON.parse(JSON.stringify(titlesBase)) };
 
         const themeConfigs = {
@@ -374,12 +368,12 @@
 
         const iconLabels = { profile: "Perfil", contactInfo: "Contatos", connect: "Redes Sociais", languages: "Idiomas", skills: "Skills", about: "Sobre Mim", objective: "Objetivo", education: "Educação", practical: "Experiência" };
 
-        // Dicionário de SVGs embutidos para marcas do Lucide
+        // Dicionário de SVGs embutidos com suporte total a HTML2Canvas (XMLNS e dimensões nativas)
         const brandSVGs = {
-            linkedin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>`,
-            github: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
-            instagram: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
-            twitter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>`
+            linkedin: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>`,
+            github: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
+            instagram: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
+            twitter: `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>`
         };
 
         // --- GESTÃO DA TELA CHEIA E ESCALA MOBILE ---
@@ -400,10 +394,10 @@
                 container.classList.add('w-full', 'md:flex-1');
                 btn.innerHTML = `<i data-lucide="maximize" class="w-4 h-4"></i> <span>Ver em Tela Cheia</span>`;
                 document.body.style.overflow = '';
-                btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Volta para o botão suavemente
+                btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             lucide.createIcons();
-            setTimeout(adjustMobileScale, 50); // Recalcula a escala A4 com o novo tamanho da tela
+            setTimeout(adjustMobileScale, 50);
         }
 
         function adjustMobileScale() {
@@ -447,9 +441,6 @@
             target[last] = value;
         };
 
-        // Mantém a proporção ORIGINAL da imagem em qualquer layout.
-        // O crop/zoom é calculado em pixels a partir de naturalWidth/naturalHeight,
-        // evitando qualquer achatamento horizontal ou vertical.
         function fitPhotoImage(img) {
             if (!img || !img.parentElement || !img.naturalWidth || !img.naturalHeight) return;
 
@@ -495,9 +486,7 @@
         const getIconHtml = (key, iconName, extraClass='') => {
             if(!state.layout.iconVisibility[key]) return '';
             const name = String(iconName || 'link').toLowerCase();
-            // Ícones de redes sociais não podem encolher dentro das linhas flex da sidebar.
-            // O tamanho explícito também evita diferenças entre SVGs próprios e os SVGs gerados pelo Lucide.
-            const fixedIconStyle = 'width:12px;height:12px;min-width:12px;min-height:12px;flex:0 0 12px;display:block;';
+            const fixedIconStyle = 'width:12px;height:12px;min-width:12px;min-height:12px;flex:0 0 12px;display:inline-block;vertical-align:middle;';
             if(brandSVGs[name]) {
                 return brandSVGs[name].replace(
                     '<svg ',
@@ -507,7 +496,7 @@
             return `<i data-lucide="${name}" class="w-3 h-3 shrink-0 ${extraClass}" style="${fixedIconStyle}"></i>`;
         };
 
-        // --- 3. GERAÇÃO DE LAYOUTS HTML COM DUPLO WRAPPER (CORREÇÃO ANTI-CROP) ---
+        // --- 3. GERAÇÃO DE LAYOUTS HTML ---
         function getStandardLayout(t) {
             const sF = state.layout.sidebarScale / 100;
             const mF = state.layout.mainScale / 100;
@@ -1054,7 +1043,6 @@
             `;
         }
 
-        // Função genérica de renderização que seleciona o layout
         function renderPreviewHTML() {
             const t = themeConfigs[state.layout.themeColor] || themeConfigs.blue;
             const mode = state.layout.layoutMode;
@@ -1083,17 +1071,14 @@
             cvRender.querySelectorAll('.photo-crop-img').forEach(img => {
                 if (img.complete) requestAnimationFrame(() => fitPhotoImage(img));
             });
-            lucide.createIcons(); // Recria os ícones inseridos dinamicamente
+            lucide.createIcons();
             
-            // Recalcula o scale no mobile após renderizar para garantir o height correto
             setTimeout(adjustMobileScale, 50); 
         }
 
-        // Modifica a estrutura quando o layout muda para evitar layouts sem sentido e aplicar a largura de aba default
         function changeTheme(modeId) {
             state.layout.layoutMode = modeId;
             
-            // Configurações específicas para cada tema:
             switch(modeId) {
                 case 'criativo': state.layout.sidebarWidth = 15; break;
                 case 'hibrido': state.layout.sidebarWidth = 35; break;
@@ -1105,7 +1090,7 @@
                 case 'cronologico': state.layout.sidebarWidth = 100; break;
                 case 'academico': state.layout.sidebarWidth = 100; break;
                 case 'compacto': state.layout.sidebarWidth = 100; break;
-                default: state.layout.sidebarWidth = 30; // standard
+                default: state.layout.sidebarWidth = 30;
             }
             
             state.layout.mainScale = 100;
@@ -1113,35 +1098,29 @@
             
             renderEditor();
             renderPreviewHTML();
-            setTimeout(autoFit, 150); // Autofit automático
+            setTimeout(autoFit, 150);
         }
-
 
         // --- 4. RENDERIZAÇÃO DOS MENUS DE EDIÇÃO ---
         function renderEditor() {
-            // Update bindings simples
             document.querySelectorAll('[data-bind]').forEach(el => {
                 const val = getNestedValue(state, el.dataset.bind);
                 if (el.type === 'checkbox') el.checked = val;
                 else el.value = val !== undefined ? val : '';
             });
 
-            // Update botões Temas
             const layoutBtns = document.getElementById('layout-buttons');
             layoutBtns.innerHTML = layoutModes.map(m => `<button onclick="changeTheme('${m.id}')" class="text-[10px] py-2 px-1 rounded-xl border-2 transition-all font-black uppercase ${state.layout.layoutMode === m.id ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 bg-white text-slate-400'}">${m.label}</button>`).join('');
 
-            // Update botões Cores
             const colorBtns = document.getElementById('color-buttons');
             colorBtns.innerHTML = Object.keys(themeConfigs).map(c => `<button onclick="updateLayout('themeColor', '${c}')" class="w-6 h-6 rounded-full border-2 transition-transform hover:scale-125 ${state.layout.themeColor === c ? 'border-white ring-2 ring-blue-500 shadow-md' : 'border-transparent'} ${themeConfigs[c].primary}"></button>`).join('');
 
-            // Ocultar barra lateral da sidebar em temas em que não faz sentido!
             const hasSidebar = ['standard', 'criativo', 'hibrido'].includes(state.layout.layoutMode);
             const swContainer = document.getElementById('sidebar-width-container');
             if (swContainer) {
                 swContainer.style.display = hasSidebar ? 'flex' : 'none';
             }
 
-            // Update Toggles Ícones
             const allOn = Object.values(state.layout.iconVisibility).every(v => v);
             const btnTog = document.getElementById('btn-toggle-icons');
             const indTog = document.getElementById('indicator-toggle-icons');
@@ -1155,28 +1134,23 @@
                     <input type="checkbox" ${state.layout.iconVisibility[k] ? 'checked' : ''} onchange="toggleIcon('${k}')" class="accent-blue-600 w-3 h-3" />
                 </label>`).join('');
 
-            // Update Targets Escala
             const tgts = document.getElementById('target-buttons');
             tgts.innerHTML = ['all', 'main', 'sidebar'].map(t => `<button onclick="updateLayout('scaleTarget', '${t}')" class="flex-1 text-[8px] py-1 rounded font-bold uppercase border transition-colors ${state.layout.scaleTarget === t ? 'bg-blue-200 border-blue-400 text-blue-800' : 'bg-white border-slate-200 text-slate-500'}">${t === 'all' ? 'Tudo' : t === 'main' ? 'Principal' : 'Lateral/Topo'}</button>`).join('');
 
-            // Labels Escala e Imagem
             document.getElementById('lbl-sidebarWidth').innerText = `Aba Lateral: ${state.layout.sidebarWidth}%`;
             document.getElementById('lbl-sidebarScale').innerText = `${state.layout.sidebarScale}%`;
             document.getElementById('lbl-mainScale').innerText = `${state.layout.mainScale}%`;
             document.getElementById('lbl-photoRadius').innerText = `${state.personal.photoRadius}%`;
             document.getElementById('lbl-photoZoom').innerText = `${state.personal.photoZoom}%`;
 
-            // Update Foto preview no editor
             const editorPhoto = document.getElementById('photo-img-editor');
             editorPhoto.src = state.personal.photoUrl;
             if (editorPhoto.complete) requestAnimationFrame(() => fitPhotoImage(editorPhoto));
             document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
 
-            // Update Rich Texts
             updateRichText('rt-about', state.about, 'about', 'Escreva o seu resumo...');
             updateRichText('rt-objective', state.objective, 'objective', 'Descreva os seus objetivos...');
 
-            // Renderização das Listas
             renderEducationList();
             renderPracticalList();
             renderLanguagesList();
@@ -1184,7 +1158,7 @@
             renderSkillsList();
             renderTitlesList();
             
-            lucide.createIcons(); // Garante a atualização dos icones do menu
+            lucide.createIcons();
         }
 
         // --- 5. RENDERIZADORES DE LISTAS ESPECÍFICAS ---
@@ -1246,8 +1220,7 @@
             const opts = ["linkedin","github","instagram","twitter","phone","globe","link"];
             document.getElementById('socials-list').innerHTML = state.socials.map(s => {
                 const name = s.icon.toLowerCase();
-                // Renderiza o SVG fixo se for marca, senão o icon padrão do Lucide
-                const socialIconStyle = 'width:12px;height:12px;min-width:12px;min-height:12px;flex:0 0 12px;display:block;';
+                const socialIconStyle = 'width:12px;height:12px;min-width:12px;min-height:12px;flex:0 0 12px;display:inline-block;vertical-align:middle;';
                 const iconHtml = brandSVGs[name] 
                     ? brandSVGs[name].replace('<svg ', `<svg class="w-3 h-3 shrink-0 text-slate-600" style="${socialIconStyle}" `)
                     : `<i data-lucide="${name}" class="w-3 h-3 shrink-0 text-slate-600" style="${socialIconStyle}"></i>`;
@@ -1340,8 +1313,6 @@
             if (!state[cat] || !state[cat][idx]) return;
             state[cat][idx][field] = val;
 
-            // Não re-renderiza o editor durante a digitação: isso preserva foco/cursor.
-            // Para sliders de idioma, atualiza apenas o rótulo percentual local.
             if (cat === 'languages' && (field === 'conversacao' || field === 'leitura')) {
                 const label = document.getElementById(`lang-${idx}-${field}-value`);
                 if (label) label.textContent = `${val}%`;
@@ -1402,8 +1373,6 @@
 
             s[field] = val;
 
-            // Trocar o ícone exige redesenhar somente a lista de redes sociais.
-            // Digitar o link não pode recriar o input, senão o foco se perde a cada tecla.
             if (field === 'icon') renderSocialsList();
 
             renderPreviewHTML();
@@ -1463,28 +1432,21 @@
             btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin" id="ai-btn-icon"></i> <span id="ai-btn-text">A procurar padrões...</span>`;
             lucide.createIcons();
 
-            // Usamos um pequeno timeout para a UI conseguir atualizar o estado de loading antes do processamento
             setTimeout(() => {
                 try {
-                    // Limpar prefixos indesejados (ex: rótulos de WhatsApp "[01:20, 26/04/2026] Nome: ")
                     let cleanedText = rawText.replace(/\[\d{2}:\d{2}(:\d{2})?(, \d{2}\/\d{2}(\/\d{2,4})?)?\] [^:]+: /gi, '\n');
-                    
-                    // Extrair linhas limpas
                     let lines = cleanedText.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 0);
 
                     const toTitleCase = (str) => str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 
-                    // 1. Extração de Email
                     const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
                     if (emailMatch) state.personal.email = emailMatch[0];
 
-                    // 2. Extração de Estado Civil
                     const statusMatch = cleanedText.match(/\b(solteiro|casado|divorciado|viúvo|separado)(a)?\b/i);
                     if (statusMatch) {
                         state.personal.status = statusMatch[0].charAt(0).toUpperCase() + statusMatch[0].slice(1).toLowerCase();
                     }
 
-                    // 3. Extração de Idade / Data de Nascimento
                     const ageMatch = cleanedText.match(/\b(\d{2})\s*(anos|years)\b/i);
                     const birthMatch = cleanedText.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
                     
@@ -1494,18 +1456,15 @@
                         const birthYear = parseInt(birthMatch[3]);
                         const currentYear = new Date().getFullYear();
                         let age = currentYear - birthYear;
-                        // Previne confundir datas de emissão de documentos (ex: 2019) com data de nascimento
                         if (age >= 14 && age <= 100) {
                             state.personal.age = age + " anos";
                         }
                     }
 
-                    // 4. Extração de Telefone (Aprimorado para não pegar CPF)
                     const phoneMatches = cleanedText.match(/(?:\+?\d{1,3}[- .\s]?)?\(?\d{2,3}\)?[- .\s]?\d{4,5}[- .\s]?\d{4}\b/g);
                     if (phoneMatches) {
                         for (let p of phoneMatches) {
                             const justDigits = p.replace(/\D/g, '');
-                            // Ignora se for 11 dígitos juntos parecendo CPF
                             if (justDigits.length === 11 && !/[-+()\s]/.test(p)) {
                                 if (justDigits[0] === '0' || justDigits[2] !== '9') continue;
                             }
@@ -1515,22 +1474,18 @@
                         }
                     }
 
-                    // 5. Nome, Localização e Informações de Linha
                     let nameFound = false;
                     for (let line of lines) {
                         const lowerLine = line.toLowerCase();
                         
-                        // Localização (Rua, Av, /Estado, - Estado, Belém, etc.)
                         if (/(rua|avenida|av\.|travessa|bairro|cep|\/ ?[a-z]{2}\b|- ?[a-z]{2}\b)/i.test(line) && !/@/.test(line)) {
                             state.personal.location = toTitleCase(line);
                             continue;
                         }
 
-                        // Ignorar linhas apenas numéricas, CPFs, RGs ou Órgãos
                         if (/^\d+$/.test(line.replace(/[-.]/g, ''))) continue;
                         if (lowerLine.includes("órgão") || lowerLine.includes("espedidor") || lowerLine.includes("expedidor") || lowerLine.includes("ssp") || lowerLine.includes("cpf") || lowerLine.includes("rg")) continue;
 
-                        // Nome (Geralmente 2 a 6 palavras sem números ou símbolos estranhos, na primeira linha válida)
                         if (!nameFound && line.split(' ').length >= 2 && line.split(' ').length <= 6 && !/\d/.test(line) && !/@/.test(line) && !/solteiro|casado|divorciado|viúvo/i.test(line)) {
                             state.personal.name = toTitleCase(line);
                             nameFound = true;
@@ -1538,19 +1493,16 @@
                         }
                     }
 
-                    // 6. Extração de LinkedIn
                     const linkedinMatch = cleanedText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
                     if (linkedinMatch && !state.socials.some(s => s.value.includes(linkedinMatch[0]))) {
                         state.socials.push({ id: Date.now(), platform: 'LinkedIn', value: linkedinMatch[0], icon: 'linkedin' });
                     }
 
-                    // 7. Extração de GitHub
                     const githubMatch = cleanedText.match(/github\.com\/[a-zA-Z0-9_-]+/i);
                     if (githubMatch && !state.socials.some(s => s.value.includes(githubMatch[0]))) {
                         state.socials.push({ id: Date.now() + 1, platform: 'GitHub', value: githubMatch[0], icon: 'github' });
                     }
 
-                    // 8. Extração de Skills (Dicionário predefinido)
                     const knownSkills = ["JavaScript", "Python", "Java", "C\\+\\+", "C#", "Ruby", "PHP", "Swift", "Go", "Rust", "TypeScript", "React", "Angular", "Vue", "Node\\.js", "Express", "Django", "Flask", "Spring", "SQL", "MySQL", "PostgreSQL", "MongoDB", "NoSQL", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "Git", "GitHub", "Figma", "Photoshop", "Illustrator", "Excel", "Word", "Scrum", "Agile", "Marketing", "Vendas"];
                     const foundSkills = [];
                     knownSkills.forEach(skillRegex => {
@@ -1570,7 +1522,6 @@
                         });
                     }
 
-                    // 9. Extração de Idiomas
                     const knownLangs = ["Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Mandarim", "Japonês", "Russo"];
                     knownLangs.forEach(lang => {
                         const regex = new RegExp("\\b" + lang + "\\b", "i");
@@ -1581,7 +1532,6 @@
                         }
                     });
 
-                    // 10. Inferência de Formação ou Experiência (Leitura por linhas)
                     lines.forEach(line => {
                         const lowerLine = line.toLowerCase();
                         if (lowerLine.length < 5) return;
@@ -1614,7 +1564,7 @@
                     btn.innerHTML = `<i data-lucide="file-search" class="w-3.5 h-3.5" id="ai-btn-icon"></i> <span id="ai-btn-text">Extrair e Preencher</span>`;
                     lucide.createIcons();
                 }
-            }, 800); // Simulamos um pequeno carregamento para perceção do utilizador
+            }, 800);
         }
 
         // PDF & JSON
@@ -1654,7 +1604,6 @@
             btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin" id="icon-pdf"></i> <span id="text-pdf">GERANDO...</span>`;
             lucide.createIcons();
 
-            // Desativar a escala temporariamente para gerar o PDF A4 nativo em alta qualidade
             const wrapper = document.getElementById('cv-scale-wrapper');
             const oldTransform = wrapper.style.transform;
             const oldHeight = wrapper.style.height;
@@ -1676,7 +1625,6 @@
                     btn.classList.remove('opacity-70', 'cursor-not-allowed');
                     btn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5" id="icon-pdf"></i> <span id="text-pdf">PDF</span>`;
                     lucide.createIcons();
-                    // Restaurar a escala
                     wrapper.style.transform = oldTransform;
                     wrapper.style.height = oldHeight;
                 }).catch(() => {
@@ -1687,7 +1635,7 @@
                     wrapper.style.transform = oldTransform;
                     wrapper.style.height = oldHeight;
                 });
-            }, 50); // Aguardar o DOM ajustar sem escala antes de tirar print
+            }, 50);
         }
 
         // --- BINDING INICIAL ---
@@ -1697,14 +1645,12 @@
                 if(e.target.type === 'range') val = parseInt(val);
                 setNestedValue(state, el.dataset.bind, val);
                 
-                // Labels de range inputs
                 if(el.dataset.bind === 'layout.sidebarWidth') document.getElementById('lbl-sidebarWidth').innerText = `Aba Lateral: ${val}%`;
                 if(el.dataset.bind === 'layout.sidebarScale') document.getElementById('lbl-sidebarScale').innerText = `${val}%`;
                 if(el.dataset.bind === 'layout.mainScale') document.getElementById('lbl-mainScale').innerText = `${val}%`;
                 if(el.dataset.bind === 'personal.photoRadius') document.getElementById('lbl-photoRadius').innerText = `${val}%`;
                 if(el.dataset.bind === 'personal.photoZoom') document.getElementById('lbl-photoZoom').innerText = `${val}%`;
 
-                // Update visual imediato da foto
                 if(el.dataset.bind.startsWith('personal.photo')) {
                     const editorPhoto = document.getElementById('photo-img-editor');
                     if (editorPhoto) fitPhotoImage(editorPhoto);
