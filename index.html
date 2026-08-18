@@ -187,7 +187,7 @@
                     <div class="flex items-start gap-4 border-b border-slate-200 pb-4">
                         <div class="relative group shrink-0">
                             <div id="photo-preview-editor" class="w-24 h-24 border-2 border-white shadow-md overflow-hidden flex items-center justify-center shrink-0 bg-slate-200 relative">
-                                <img id="photo-img-editor" class="w-full h-full object-cover absolute" />
+                                <img id="photo-img-editor" class="absolute inset-0 block max-w-none" style="width:100%; height:100%; object-fit:cover; object-position:50% 50%; transform-origin:center;" />
                             </div>
                             <button onclick="document.getElementById('upload-photo').click()" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" id="btn-upload-overlay">
                                 <i data-lucide="upload" class="w-4 h-4 mb-1"></i>
@@ -449,7 +449,7 @@
 
         const renderPhotoHtml = (extraClasses) => `
             <div class="overflow-hidden flex items-center justify-center shrink-0 bg-slate-200 relative ${extraClasses}" style="border-radius: ${state.personal.photoRadius}%">
-                <img src="${state.personal.photoUrl}" class="w-full h-full object-cover absolute" style="transform: scale(${state.personal.photoZoom / 100}); object-position: ${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%" />
+                <img src="${state.personal.photoUrl}" class="absolute inset-0 block max-w-none" style="width:100%; height:100%; object-fit:cover; object-position: ${state.personal.photoOffsetX}% ${state.personal.photoOffsetY}%; transform: scale(${state.personal.photoZoom / 100}); transform-origin:center;" />
             </div>
         `;
 
