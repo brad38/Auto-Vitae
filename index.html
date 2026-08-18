@@ -1164,11 +1164,11 @@
                   <input class="text-xs font-black bg-transparent outline-none border-b w-full mb-3 pb-1" value="${l.name}" oninput="updateList('languages', ${idx}, 'name', this.value)" placeholder="Idioma" />
                   <div class="space-y-3">
                     <div>
-                      <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1"><span>Conversação</span><span>${l.conversacao}%</span></div>
+                      <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1"><span>Conversação</span><span id="lang-${idx}-conversacao-value">${l.conversacao}%</span></div>
                       <input type="range" min="0" max="100" value="${l.conversacao}" oninput="updateList('languages', ${idx}, 'conversacao', parseInt(this.value))" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                     </div>
                     <div>
-                      <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1"><span>Leitura / Escrita</span><span>${l.leitura}%</span></div>
+                      <div class="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1"><span>Leitura / Escrita</span><span id="lang-${idx}-leitura-value">${l.leitura}%</span></div>
                       <input type="range" min="0" max="100" value="${l.leitura}" oninput="updateList('languages', ${idx}, 'leitura', parseInt(this.value))" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                     </div>
                   </div>
@@ -1268,9 +1268,21 @@
 
         // --- AÇÕES DO UTILIZADOR ---
         function updateLayout(field, val) { state.layout[field] = val; renderEditor(); renderPreviewHTML(); }
-        function updatePersonal(field, val) { state.personal[field] = val; renderEditor(); renderPreviewHTML(); }
+        function updatePersonal(field, val) { state.personal[field] = val; renderPreviewHTML(); }
         function updateSectionTitle(field, val) { state.titles[field] = val; renderPreviewHTML(); }
-        function updateList(cat, idx, field, val) { state[cat][idx][field] = val; renderEditor(); renderPreviewHTML(); }
+        function updateList(cat, idx, field, val) {
+            if (!state[cat] || !state[cat][idx]) return;
+            state[cat][idx][field] = val;
+
+            // Não re-renderiza o editor durante a digitação: isso preserva foco/cursor.
+            // Para sliders de idioma, atualiza apenas o rótulo percentual local.
+            if (cat === 'languages' && (field === 'conversacao' || field === 'leitura')) {
+                const label = document.getElementById(`lang-${idx}-${field}-value`);
+                if (label) label.textContent = `${val}%`;
+            }
+
+            renderPreviewHTML();
+        }
         
         function clearAll() {
             if(confirm("Tem certeza que deseja apagar todos os dados do currículo?")) {
@@ -1318,7 +1330,18 @@
         function removeSkill(idx) { state.skills.splice(idx, 1); renderEditor(); renderPreviewHTML(); }
 
         function addSocial() { state.socials.push({id:Date.now(), platform:'Rede', value:'link', icon:'link'}); renderEditor(); renderPreviewHTML(); }
-        function updateSocial(id, field, val) { const s = state.socials.find(x=>x.id===id); if(s) {s[field]=val; renderEditor(); renderPreviewHTML(); } }
+        function updateSocial(id, field, val) {
+            const s = state.socials.find(x => x.id === id);
+            if (!s) return;
+
+            s[field] = val;
+
+            // Trocar o ícone exige redesenhar somente a lista de redes sociais.
+            // Digitar o link não pode recriar o input, senão o foco se perde a cada tecla.
+            if (field === 'icon') renderSocialsList();
+
+            renderPreviewHTML();
+        }
         function removeSocial(id) { state.socials = state.socials.filter(x=>x.id!==id); renderEditor(); renderPreviewHTML(); }
 
         function toggleAllIcons() {
