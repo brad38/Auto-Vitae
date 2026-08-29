@@ -201,6 +201,10 @@
                                 <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase mb-1"><span>Zoom</span><span id="lbl-photoZoom">100%</span></div>
                                 <input type="range" min="100" max="250" data-bind="personal.photoZoom" class="w-full h-1.5 accent-blue-600" />
                             </div>
+                            <div>
+                                <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase mb-1"><span>Tamanho da Área</span><span id="lbl-photoSize">100%</span></div>
+                                <input type="range" min="50" max="200" data-bind="personal.photoSize" class="w-full h-1.5 accent-blue-600" />
+                            </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase mb-1"><span>Posição X</span></div>
@@ -328,7 +332,7 @@
                 phone: "(00) 00000-0000", 
                 location: "Sua Cidade, País", 
                 photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), 
-                photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 
+                photoZoom: 100, photoSize: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50 
             },
             about: "Escreva aqui um breve resumo sobre a sua experiência, habilidades principais e o que procura na sua carreira.",
             objective: "Descreva o seu objetivo profissional ou a vaga que pretende alcançar.",
@@ -471,11 +475,20 @@
             img.style.objectFit = 'unset';
         }
 
-        const renderPhotoHtml = (extraClasses) => `
-            <div class="overflow-hidden shrink-0 bg-slate-200 relative ${extraClasses}" style="border-radius: ${state.personal.photoRadius}%">
-                <img src="${state.personal.photoUrl}" class="photo-crop-img absolute max-w-none" onload="fitPhotoImage(this)" />
-            </div>
-        `;
+        const renderPhotoHtml = (extraClasses) => {
+            const sizeFactor = Math.max(0.5, Math.min(2, (Number(state.personal.photoSize) || 100) / 100));
+            const widthMatch = String(extraClasses).match(/(?:^|\s)w-(\d+)(?:\s|$)/);
+            const heightMatch = String(extraClasses).match(/(?:^|\s)h-(\d+)(?:\s|$)/);
+            const widthPx = widthMatch ? Number(widthMatch[1]) * 4 * sizeFactor : null;
+            const heightPx = heightMatch ? Number(heightMatch[1]) * 4 * sizeFactor : null;
+            const sizeStyle = `${widthPx ? `width:${widthPx}px;` : ''}${heightPx ? `height:${heightPx}px;` : ''}`;
+
+            return `
+                <div class="overflow-hidden shrink-0 bg-slate-200 relative ${extraClasses}" style="${sizeStyle}border-radius: ${state.personal.photoRadius}%">
+                    <img src="${state.personal.photoUrl}" class="photo-crop-img absolute max-w-none" onload="fitPhotoImage(this)" />
+                </div>
+            `;
+        };
 
         const renderLangBarHtml = (level, isSidebar) => `
             <div class="h-1.5 w-full rounded-full mt-1 overflow-hidden ${isSidebar ? 'bg-white/10' : 'bg-slate-100'}">
@@ -1158,11 +1171,16 @@
             document.getElementById('lbl-mainScale').innerText = `${state.layout.mainScale}%`;
             document.getElementById('lbl-photoRadius').innerText = `${state.personal.photoRadius}%`;
             document.getElementById('lbl-photoZoom').innerText = `${state.personal.photoZoom}%`;
+            document.getElementById('lbl-photoSize').innerText = `${state.personal.photoSize || 100}%`;
 
             const editorPhoto = document.getElementById('photo-img-editor');
+            const editorFrame = document.getElementById('photo-preview-editor');
+            const editorSize = 96 * ((Number(state.personal.photoSize) || 100) / 100);
+            editorFrame.style.width = `${editorSize}px`;
+            editorFrame.style.height = `${editorSize}px`;
             editorPhoto.src = state.personal.photoUrl;
             if (editorPhoto.complete) requestAnimationFrame(() => fitPhotoImage(editorPhoto));
-            document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
+            editorFrame.style.borderRadius = `${state.personal.photoRadius}%`;
 
             updateRichText('rt-about', state.about, 'about', 'Escreva o seu resumo...');
             updateRichText('rt-objective', state.objective, 'objective', 'Descreva os seus objetivos...');
@@ -1342,7 +1360,7 @@
                 state.personal = {
                     name: "", title: "", age: "", status: "", email: "", phone: "", location: "",
                     photoUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random().toString(36).substring(7), 
-                    photoZoom: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50
+                    photoZoom: 100, photoSize: 100, photoRadius: 50, photoOffsetX: 50, photoOffsetY: 50
                 };
                 state.about = "";
                 state.objective = "";
@@ -1603,6 +1621,7 @@
                     if(data.personal && data.layout) {
                         if(data.layout.mainScale===undefined) data.layout.mainScale=100;
                         if(data.layout.sidebarScale===undefined) data.layout.sidebarScale=100;
+                        if(data.personal.photoSize===undefined) data.personal.photoSize=100;
                         state = data;
                         renderEditor(); renderPreviewHTML();
                     } else alert("Ficheiro inválido.");
@@ -1666,11 +1685,18 @@
                 if(el.dataset.bind === 'layout.mainScale') document.getElementById('lbl-mainScale').innerText = `${val}%`;
                 if(el.dataset.bind === 'personal.photoRadius') document.getElementById('lbl-photoRadius').innerText = `${val}%`;
                 if(el.dataset.bind === 'personal.photoZoom') document.getElementById('lbl-photoZoom').innerText = `${val}%`;
+                if(el.dataset.bind === 'personal.photoSize') document.getElementById('lbl-photoSize').innerText = `${val}%`;
 
                 if(el.dataset.bind.startsWith('personal.photo')) {
                     const editorPhoto = document.getElementById('photo-img-editor');
-                    if (editorPhoto) fitPhotoImage(editorPhoto);
-                    document.getElementById('photo-preview-editor').style.borderRadius = `${state.personal.photoRadius}%`;
+                    const editorFrame = document.getElementById('photo-preview-editor');
+                    if (editorFrame) {
+                        const editorSize = 96 * ((Number(state.personal.photoSize) || 100) / 100);
+                        editorFrame.style.width = `${editorSize}px`;
+                        editorFrame.style.height = `${editorSize}px`;
+                        editorFrame.style.borderRadius = `${state.personal.photoRadius}%`;
+                    }
+                    if (editorPhoto) requestAnimationFrame(() => fitPhotoImage(editorPhoto));
                     document.getElementById('btn-upload-overlay').style.borderRadius = `${state.personal.photoRadius}%`;
                 }
 
